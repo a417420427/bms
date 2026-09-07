@@ -13,7 +13,7 @@ const UserContext = createContext<UserContextValue | undefined>(undefined);
 export const UserProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const [userInfo, setUserInfo] = useState<UserInfoProp>(getLocalUserInfo());
   const [currentProject, setCurrentProject] = useState<ProjectItem | null>(
-    (userInfo as any)?.currentProject || null
+    ((userInfo as any) && (userInfo as any).currentProject) || null
   );
 
   const updateUserInfo = (newUserInfo: UserInfoProp) => {

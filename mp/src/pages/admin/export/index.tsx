@@ -7,12 +7,14 @@ import {
   getLocalProject,
 } from "@/services/api";
 import Empty from "@/components/Empty";
+import { useShare } from "@/hooks/useShare";
 import "./index.scss";
 
 export default function AdminExport() {
+  useShare({ title: "商管营销宝 - 数据导出" });
   const [projects, setProjects] = useState<ProjectItem[]>([]);
   const [form, setForm] = useState<any>({
-    projectId: getLocalProject()?._id,
+    projectId: getLocalProject() && getLocalProject()._id,
     source: "",
     intentLevel: "",
     status: "",
@@ -40,7 +42,7 @@ export default function AdminExport() {
     setLoading(true);
     adminExportCustomers(form)
       .then((res: any) => {
-        const url = res?.url || res;
+        const url = (res && res.url) || res;
         if (url) {
           Taro.showModal({
             title: "导出成功",
@@ -89,13 +91,13 @@ export default function AdminExport() {
               const idx = Number(e.detail.value);
               setForm((p) => ({
                 ...p,
-                projectId: idx === 0 ? undefined : projects[idx - 1]?._id,
+                projectId: idx === 0 ? undefined : projects[idx - 1] && projects[idx - 1]._id,
               }));
             }}
           >
             <View className="form-item__picker">
               {form.projectId
-                ? projects.find((p) => p._id === form.projectId)?.name ||
+                ? (projects.find((p) => p._id === form.projectId) && projects.find((p) => p._id === form.projectId).name) ||
                   "全部项目"
                 : "全部项目"}
             </View>

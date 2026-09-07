@@ -14,9 +14,11 @@ import Modal from "@/components/Modal/Modal";
 import { formatDate } from "@/utils/dayjs";
 import dayjs from "@/utils/dayjs";
 import { ROLE } from "@/utils/constants";
+import { useShare } from "@/hooks/useShare";
 import "./index.scss";
 
 export default function ChannelCustomerDetail() {
+  useShare({ title: "商管营销宝 - 客户详情" });
   const router = useRouter();
   const id = router.params.id;
   const [customer, setCustomer] = useState<CustomerItem | null>(null);
@@ -97,7 +99,7 @@ export default function ChannelCustomerDetail() {
         </View>
         <View className="row">
           <Text className="row__label">推荐人</Text>
-          <Text>{customer.channelReferrer?.referrerName || "-"}</Text>
+          <Text>{(customer.channelReferrer && customer.channelReferrer.referrerName) || "-"}</Text>
         </View>
         <View className="row">
           <Text className="row__label">推荐时间</Text>

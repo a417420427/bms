@@ -13,9 +13,11 @@ import { logout } from "@/services/auth";
 import { ROLE_HOME } from "@/utils/constants";
 import { ROLE_LABELS } from "@/utils/common";
 import Modal from "@/components/Modal/Modal";
+import { useShare } from "@/hooks/useShare";
 import "./index.scss";
 
 export default function Mine() {
+  useShare({ title: "商管营销宝 - 个人中心" });
   const [userInfo, setUserInfo] = useState<UserInfoProp>(getLocalUserInfo());
   const [projects, setProjects] = useState<ProjectItem[]>([]);
   const [projectModal, setProjectModal] = useState(false);
@@ -67,7 +69,7 @@ export default function Mine() {
   return (
     <View className="mine">
       <View className="mine__header">
-        <View className="mine__avatar">{userInfo.realName?.[0] || userInfo.username?.[0] || "?"}</View>
+        <View className="mine__avatar">{(userInfo.realName && userInfo.realName[0]) || (userInfo.username && userInfo.username[0]) || "?"}</View>
         <View className="mine__info">
           <Text className="mine__name">{userInfo.realName || userInfo.username}</Text>
           <Text className="mine__role">{ROLE_LABELS[userInfo.role]}</Text>

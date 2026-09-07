@@ -6,9 +6,11 @@ import Empty from "@/components/Empty";
 import Tag from "@/components/Tag";
 import { maskPhone } from "@/utils/common";
 import { formatDate } from "@/utils/dayjs";
+import { useShare } from "@/hooks/useShare";
 import "./index.scss";
 
 export default function SalesPublicPool() {
+  useShare({ title: "商管营销宝 - 公共池" });
   const [list, setList] = useState<any[]>([]);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
@@ -48,18 +50,18 @@ export default function SalesPublicPool() {
         list.map((it) => (
           <View key={it._id} className="pool-item">
             <View className="pool-item__row">
-              <Text className="pool-item__name">{it.customerId?.name}</Text>
-              <Tag type="primary">{it.customerId?.intentLevel}</Tag>
+              <Text className="pool-item__name">{it.customerId && it.customerId.name}</Text>
+              <Tag type="primary">{it.customerId && it.customerId.intentLevel}</Tag>
             </View>
             <View className="pool-item__row">
-              <Text>{maskPhone(it.customerId?.phone || "")}</Text>
+              <Text>{maskPhone((it.customerId && it.customerId.phone) || "")}</Text>
               <Text className="pool-item__time">
                 移入时间: {formatDate(it.movedAt)}
               </Text>
             </View>
             <Button
               className="pool-item__btn"
-              onClick={() => handleClaim(it.customerId?._id)}
+              onClick={() => handleClaim(it.customerId && it.customerId._id)}
             >
               申请认领
             </Button>

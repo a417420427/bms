@@ -69,11 +69,11 @@ export const clearLocalUserInfo = (): void => {
   }
 };
 
-export const getLocalProject = (): ProjectItem | null => {
+export const getLocalProject = (): ProjectItem => {
   try {
-    return JSON.parse(Taro.getStorageSync(LOCAL_PROJECT_KEY)) || null;
+    return JSON.parse(Taro.getStorageSync(LOCAL_PROJECT_KEY)) || { _id: "", name: "" };
   } catch (e) {
-    return null;
+    return { _id: "", name: "" };
   }
 };
 

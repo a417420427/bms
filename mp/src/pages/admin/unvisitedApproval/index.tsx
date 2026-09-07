@@ -11,9 +11,11 @@ import { APPROVAL_RESULT_LABELS } from "@/utils/constants";
 import { maskPhone } from "@/utils/common";
 import { formatDate } from "@/utils/dayjs";
 import Modal from "@/components/Modal/Modal";
+import { useShare } from "@/hooks/useShare";
 import "./index.scss";
 
 export default function AdminUnvisitedApproval() {
+  useShare({ title: "商管营销宝 - 审批" });
   const [list, setList] = useState<ApprovalItem[]>([]);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
@@ -73,7 +75,7 @@ export default function AdminUnvisitedApproval() {
           <View key={a._id} className="approval-item">
             <View className="approval-item__row">
               <Text className="approval-item__customer">
-                {a.customer?.name || "-"}
+                {(a.customer && a.customer.name) || "-"}
               </Text>
               <Tag type={a.result === "PENDING" ? "warning" : "default"}>
                 {APPROVAL_RESULT_LABELS[a.result]}
@@ -89,7 +91,7 @@ export default function AdminUnvisitedApproval() {
             </View>
             <View className="approval-item__row">
               <Text className="approval-item__applicant">
-                申请人：{a.applicant?.realName || "-"}
+                申请人：{(a.applicant && a.applicant.realName) || "-"}
               </Text>
             </View>
             {a.result === "PENDING" ? (
@@ -113,11 +115,11 @@ export default function AdminUnvisitedApproval() {
           <View className="approval-form__info">
             <View className="row">
               <Text>客户：</Text>
-              <Text>{current?.customer?.name}</Text>
+              <Text>{current && current.customer && current.customer.name}</Text>
             </View>
             <View className="row">
               <Text>申请人：</Text>
-              <Text>{current?.applicant?.realName}</Text>
+              <Text>{current && current.applicant && current.applicant.realName}</Text>
             </View>
           </View>
           <Textarea

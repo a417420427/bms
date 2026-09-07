@@ -12,12 +12,14 @@ import {
   CUSTOMER_SOURCE,
 } from "@/utils/constants";
 import { isValidPhone, debounce } from "@/utils/common";
+import { useShare } from "@/hooks/useShare";
 import "./index.scss";
 
 const SOURCE_OPTIONS = Object.keys(SOURCE_LABELS);
 const INTENT_OPTIONS = Object.keys(INTENT_LABELS);
 
 export default function CustomerCreate() {
+  useShare({ title: "商管营销宝 - 新增客户" });
   const [form, setForm] = useState<any>({
     name: "",
     phone: "",

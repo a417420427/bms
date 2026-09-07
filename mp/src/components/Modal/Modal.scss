@@ -26,7 +26,6 @@
     z-index: 1;
     background: #fff;
     border-radius: 16rpx;
-    max-width: 90%;
     max-height: 80%;
     overflow: hidden;
     display: flex;
@@ -38,6 +37,7 @@
   }
   &__container--bottom {
     width: 100%;
+    max-width: 100%;
     border-bottom-left-radius: 0;
     border-bottom-right-radius: 0;
   }

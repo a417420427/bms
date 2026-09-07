@@ -13,6 +13,7 @@ import Empty from "@/components/Empty";
 import Modal from "@/components/Modal/Modal";
 import { ROLE } from "@/utils/constants";
 import { ROLE_LABELS } from "@/utils/common";
+import { useShare } from "@/hooks/useShare";
 import "./index.scss";
 
 const ROLE_OPTIONS: RoleType[] = [
@@ -22,6 +23,7 @@ const ROLE_OPTIONS: RoleType[] = [
 ];
 
 export default function AdminUser() {
+  useShare({ title: "商管营销宝 - 用户管理" });
   const [list, setList] = useState<UserInfoProp[]>([]);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
@@ -47,7 +49,7 @@ export default function AdminUser() {
       .then((res: any) => {
         const data = res.list || res || [];
         setList((prev) => (p === 1 ? data : [...prev, ...data]));
-        setTotal(res.total ?? data.length);
+        setTotal(res.total != null ? res.total : data.length);
         setPage(p);
       })
       .finally(() => {
@@ -112,9 +114,29 @@ export default function AdminUser() {
       Taro.showToast({ title: "请设置初始密码", icon: "none" });
       return;
     }
+    if (form.projectIds.length === 0) {
+      Taro.showToast({ title: "请至少选择一个可访问项目", icon: "none" });
+      return;
+    }
+    // 后端期望 accessibleProjects（数组）+ currentProject（第一个项目）
+    // 前端表单用的是 projectIds，提交时映射成后端字段名
     const payload = editing
-      ? { realName: form.realName, phone: form.phone, role: form.role, projectIds: form.projectIds }
-      : form;
+      ? {
+          realName: form.realName,
+          phone: form.phone,
+          role: form.role,
+          accessibleProjects: form.projectIds,
+          // 编辑时不强制改 currentProject（用户可能在个人中心已切换过）
+        }
+      : {
+          username: form.username,
+          password: form.password,
+          realName: form.realName,
+          phone: form.phone,
+          role: form.role,
+          accessibleProjects: form.projectIds,
+          currentProject: form.projectIds[0], // 默认第一个项目
+        };
     const action = editing
       ? adminUpdateUser(editing._id || editing.id, payload)
       : adminCreateUser(payload);
@@ -134,7 +156,7 @@ export default function AdminUser() {
           adminResetUserPassword(u._id || u.id).then((res: any) => {
             Taro.showModal({
               title: "重置成功",
-              content: `新密码：${res?.password || "默认密码"}`,
+              content: `新密码：${(res && res.password) || "默认密码"}`,
               showCancel: false,
             });
           });

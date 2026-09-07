@@ -6,6 +6,7 @@ import StatCard from "@/components/StatCard";
 import Empty from "@/components/Empty";
 import ProjectSelect from "@/components/ProjectSelect";
 import { go } from "@/utils/common";
+import { useShare } from "@/hooks/useShare";
 import "./index.scss";
 
 interface Stats {
@@ -18,17 +19,18 @@ interface Stats {
 }
 
 export default function AdminDashboard() {
+  useShare({ title: "商管营销宝 - 管理总览" });
   const [stats, setStats] = useState<Stats | null>(null);
-  const [project, setProject] = useState<ProjectItem | null>(getLocalProject());
+  const [project, setProject] = useState<ProjectItem>(getLocalProject());
   const [projectModal, setProjectModal] = useState(false);
 
   const load = () => {
-    adminDashboard(project?._id).then((res: any) => setStats(res));
+    adminDashboard(project && project._id).then((res: any) => setStats(res));
   };
 
   useEffect(() => {
     load();
-  }, [project?._id]);
+  }, [project && project._id]);
 
   return (
     <View className="admin-dashboard">
@@ -36,19 +38,19 @@ export default function AdminDashboard() {
         className="admin-dashboard__project"
         onClick={() => setProjectModal(true)}
       >
-        当前项目：<Text className="primary">{project?.name || "全部项目"}</Text>
+        当前项目：<Text className="primary">{(project && project.name) || "全部项目"}</Text>
         <Text className="admin-dashboard__switch">›</Text>
       </View>
 
       <View className="admin-dashboard__stats">
-        <StatCard title="客户总数" value={stats?.total ?? "-"} onClick={() => go("/pages/admin/customerList/index")} />
-        <StatCard title="销售员录入" value={stats?.salesCount ?? "-"} />
-        <StatCard title="渠道推荐" value={stats?.channelCount ?? "-"} />
-        <StatCard title="公共池" value={stats?.publicCount ?? "-"} onClick={() => go("/pages/admin/publicPool/index")} />
-        <StatCard title="过期池" value={stats?.expiredCount ?? "-"} onClick={() => go("/pages/admin/expiredPool/index")} />
+        <StatCard title="客户总数" value={((stats && stats.total) != null ? (stats && stats.total) : "-")} onClick={() => go("/pages/admin/customerList/index")} />
+        <StatCard title="销售员录入" value={((stats && stats.salesCount) != null ? (stats && stats.salesCount) : "-")} />
+        <StatCard title="渠道推荐" value={((stats && stats.channelCount) != null ? (stats && stats.channelCount) : "-")} />
+        <StatCard title="公共池" value={((stats && stats.publicCount) != null ? (stats && stats.publicCount) : "-")} onClick={() => go("/pages/admin/publicPool/index")} />
+        <StatCard title="过期池" value={((stats && stats.expiredCount) != null ? (stats && stats.expiredCount) : "-")} onClick={() => go("/pages/admin/expiredPool/index")} />
         <StatCard
           title="待审批申领"
-          value={stats?.pendingApproval ?? "-"}
+          value={((stats && stats.pendingApproval) != null ? (stats && stats.pendingApproval) : "-")}
           valueColor="#ff4d4f"
           onClick={() => go("/pages/admin/unvisitedApproval/index")}
         />
@@ -60,7 +62,10 @@ export default function AdminDashboard() {
         <View className="action-item" onClick={() => go("/pages/admin/unvisitedApproval/index")}>未到访申领审批</View>
         <View className="action-item" onClick={() => go("/pages/admin/expiredPool/index")}>过期客户池管理</View>
         <View className="action-item" onClick={() => go("/pages/admin/export/index")}>客户数据导出</View>
-        <View className="action-item" onClick={() => go("/pages/admin/project/index")}>系统配置</View>
+        <View className="action-item" onClick={() => go("/pages/admin/user/index")}>用户管理</View>
+        <View className="action-item" onClick={() => go("/pages/admin/company/index")}>合作公司管理</View>
+        <View className="action-item" onClick={() => go("/pages/admin/project/index")}>项目配置</View>
+        <View className="action-item" onClick={() => go("/pages/admin/config/index")}>系统参数</View>
         <View className="action-item" onClick={() => go("/pages/admin/auditLog/index")}>操作日志</View>
       </View>
       {!stats ? <Empty text="加载中..." /> : null}

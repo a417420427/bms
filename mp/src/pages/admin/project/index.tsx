@@ -8,9 +8,11 @@ import {
 } from "@/services/api";
 import Empty from "@/components/Empty";
 import Modal from "@/components/Modal/Modal";
+import { useShare } from "@/hooks/useShare";
 import "./index.scss";
 
 export default function AdminProject() {
+  useShare({ title: "商管营销宝 - 项目配置" });
   const [list, setList] = useState<ProjectItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [modal, setModal] = useState(false);

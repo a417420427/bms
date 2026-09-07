@@ -6,9 +6,11 @@ import Tag from "@/components/Tag";
 import Empty from "@/components/Empty";
 import { maskPhone } from "@/utils/common";
 import dayjs from "@/utils/dayjs";
+import { useShare } from "@/hooks/useShare";
 import "./index.scss";
 
 export default function Reminder() {
+  useShare({ title: "商管营销宝 - 跟进提醒" });
   const [list, setList] = useState<CustomerItem[]>([]);
 
   useEffect(() => {

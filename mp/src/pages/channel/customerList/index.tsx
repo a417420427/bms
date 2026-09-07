@@ -5,9 +5,11 @@ import { channelListCustomers } from "@/services/api";
 import Tag from "@/components/Tag";
 import Empty from "@/components/Empty";
 import dayjs, { formatDate } from "@/utils/dayjs";
+import { useShare } from "@/hooks/useShare";
 import "./index.scss";
 
 export default function ChannelCustomerList() {
+  useShare({ title: "商管营销宝 - 我的推荐" });
   const [list, setList] = useState<CustomerItem[]>([]);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
@@ -63,7 +65,7 @@ export default function ChannelCustomerList() {
               </View>
               <View className="channel-item__row">
                 <Text>{c.phoneMasked || c.phone}</Text>
-                <Text>{c.channelReferrer?.referrerName}</Text>
+                <Text>{c.channelReferrer && c.channelReferrer.referrerName}</Text>
               </View>
               <View className="channel-item__row">
                 <Text className="channel-item__time">

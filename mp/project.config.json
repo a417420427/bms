@@ -2,7 +2,7 @@
   "miniprogramRoot": "./dist",
   "projectname": "bms-mp",
   "description": "商管营销宝小程序",
-  "appid": "touristappid",
+  "appid": "wx91ab130a04745bd8",
   "setting": {
     "urlCheck": false,
     "es6": false,

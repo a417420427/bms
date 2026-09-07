@@ -19,12 +19,14 @@ import {
 } from "@/utils/constants";
 import { maskPhone } from "@/utils/common";
 import { formatDate } from "@/utils/dayjs";
+import { useShare } from "@/hooks/useShare";
 import "./index.scss";
 
 const INTENT_OPTIONS = Object.keys(INTENT_LABELS);
 const METHOD_OPTIONS = Object.keys(FOLLOWUP_METHOD_LABELS);
 
 export default function CustomerDetail() {
+  useShare({ title: "商管营销宝 - 客户详情" });
   const router = useRouter();
   const id = router.params.id;
   const [customer, setCustomer] = useState<CustomerItem | null>(null);
@@ -50,7 +52,7 @@ export default function CustomerDetail() {
       })
       .catch((e: any) => {
         console.error("[customerDetail] getCustomer failed:", e);
-        Taro.showToast({ title: e?.message || "加载失败", icon: "none" });
+        Taro.showToast({ title: (e && e.message) || "加载失败", icon: "none" });
       });
     salesListFollowups(id)
       .then((res: any) => setFollowups(res || []))
@@ -127,7 +129,7 @@ export default function CustomerDetail() {
 
       <Card title="到访照片">
         <View className="photos">
-          {customer.visitPhotos?.map((p, i) => (
+          {customer.visitPhotos && customer.visitPhotos.map((p, i) => (
             <Image
               key={i}
               src={p}

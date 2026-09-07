@@ -10,14 +10,16 @@ import {
 } from "@/services/api";
 import Empty from "@/components/Empty";
 import Modal from "@/components/Modal/Modal";
+import { useShare } from "@/hooks/useShare";
 import "./index.scss";
 
 export default function AdminCompany() {
+  useShare({ title: "商管营销宝 - 公司管理" });
   const [list, setList] = useState<CompanyItem[]>([]);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [projectId, setProjectId] = useState<string | undefined>(
-    getLocalProject()?._id
+    getLocalProject() && getLocalProject()._id
   );
   const [projects, setProjects] = useState<ProjectItem[]>([]);
   const [loading, setLoading] = useState(false);
@@ -39,7 +41,7 @@ export default function AdminCompany() {
       .then((res: any) => {
         const data = res.list || res || [];
         setList((prev) => (p === 1 ? data : [...prev, ...data]));
-        setTotal(res.total ?? data.length);
+        setTotal(res.total != null ? res.total : data.length);
         setPage(p);
       })
       .finally(() => {
@@ -136,7 +138,7 @@ export default function AdminCompany() {
             </View>
             <View className="company-item__row">
               <Text className="company-item__label">客户数：</Text>
-              <Text>{c.customerCount ?? 0}</Text>
+              <Text>{c.customerCount != null ? c.customerCount : 0}</Text>
             </View>
           </View>
         ))
@@ -166,14 +168,14 @@ export default function AdminCompany() {
                 const idx = Number(e.detail.value);
                 setForm((p) => ({
                   ...p,
-                  projectId: idx === 0 ? undefined : projects[idx - 1]?._id,
+                  projectId: idx === 0 ? undefined : projects[idx - 1] && projects[idx - 1]._id,
                 }));
               }}
             >
               <View className="form-item__picker">
                 {projectIdx === 0
                   ? "全部项目"
-                  : projects[projectIdx - 1]?.name}
+                  : (projects[projectIdx - 1] && projects[projectIdx - 1].name)}
               </View>
             </Picker>
           </View>

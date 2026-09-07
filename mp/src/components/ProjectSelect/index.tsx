@@ -23,8 +23,8 @@ const ProjectSelect: FC<Props> = ({ visible, onClose, onSelected }) => {
   const handleSelect = async (p: ProjectItem) => {
     const project = await switchProject(p._id);
     setLocalProject(project);
-    onSelected?.(project);
-    onClose?.();
+    onSelected && onSelected(project);
+    onClose && onClose();
   };
 
   return (
@@ -33,7 +33,7 @@ const ProjectSelect: FC<Props> = ({ visible, onClose, onSelected }) => {
       title="选择项目"
       position="bottom"
       maskClosable={false}
-      onClose={() => onClose?.()}
+      onClose={() => onClose && onClose()}
     >
       <ScrollView scrollY style={{ maxHeight: "600rpx" }}>
         {list.length === 0 ? (

@@ -15,12 +15,14 @@ import {
 } from "@/utils/constants";
 import { maskPhone } from "@/utils/common";
 import { formatDate } from "@/utils/dayjs";
+import { useShare } from "@/hooks/useShare";
 import "./index.scss";
 
 const STATUS_OPTIONS = ["", ...Object.keys(STATUS_LABELS)];
 const INTENT_OPTIONS = ["", ...Object.keys(INTENT_LABELS)];
 
 export default function AdminCustomerList() {
+  useShare({ title: "商管营销宝 - 客户管理" });
   const [list, setList] = useState<CustomerItem[]>([]);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
@@ -28,7 +30,7 @@ export default function AdminCustomerList() {
   const [status, setStatus] = useState("");
   const [intentLevel, setIntentLevel] = useState("");
   const [projectId, setProjectId] = useState<string | undefined>(
-    getLocalProject()?._id
+    getLocalProject() && getLocalProject()._id
   );
   const [projects, setProjects] = useState<ProjectItem[]>([]);
   const [loading, setLoading] = useState(false);
@@ -125,11 +127,11 @@ export default function AdminCustomerList() {
           range={["全部项目", ...projects.map((p) => p.name)]}
           onChange={(e) => {
             const idx = Number(e.detail.value);
-            setProjectId(idx === 0 ? undefined : projects[idx - 1]?._id);
+            setProjectId(idx === 0 ? undefined : projects[idx - 1] && projects[idx - 1]._id);
           }}
         >
           <View className="admin-customer-list__picker">
-            {projectIdx === 0 ? "全部项目" : projects[projectIdx - 1]?.name}
+            {projectIdx === 0 ? "全部项目" : (projects[projectIdx - 1] && projects[projectIdx - 1].name)}
           </View>
         </Picker>
       </View>
@@ -168,7 +170,7 @@ export default function AdminCustomerList() {
                 项目：{c.projectName || "-"}
               </Text>
               <Text className="customer-item__time">
-                销售员：{c.owner?.realName || "-"}
+                销售员：{(c.owner && c.owner.realName) || "-"}
               </Text>
             </View>
             <View className="customer-item__row">

@@ -145,11 +145,11 @@ class HttpRequest {
 
   private handleError(error: any, config: RequestConfig): void {
     let errorMessage = "请求失败，请稍后重试";
-    if (error?.errMsg) {
+    if (error && error.errMsg) {
       if (error.errMsg.includes("timeout")) errorMessage = "请求超时，请检查网络连接";
       else if (error.errMsg.includes("fail")) errorMessage = "网络错误，请检查网络连接";
     }
-    if (error?.code) {
+    if (error && error.code) {
       switch (error.code) {
         case 401: errorMessage = "未授权，请重新登录"; break;
         case 403: errorMessage = "拒绝访问"; break;

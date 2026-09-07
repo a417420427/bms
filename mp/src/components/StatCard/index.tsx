@@ -16,7 +16,7 @@ const StatCard: FC<Props> = ({ title, value, valueColor, onClick, children }) =>
       {children || (
         <>
           <Text className="stat-card__value" style={valueColor ? { color: valueColor } : {}}>
-            {value ?? "-"}
+            {value != null ? value : "-"}
           </Text>
           <Text className="stat-card__title">{title}</Text>
         </>

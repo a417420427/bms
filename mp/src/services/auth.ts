@@ -93,7 +93,7 @@ export function handleWechatLogin() {
           // L4: catch 里 clearToken，避免 401 死循环
           clearToken();
           console.error('[auth] wechatLogin failed:', err);
-          Taro.showToast({ title: err?.message || "登录失败", icon: "none" });
+          Taro.showToast({ title: (err && err.message) || "登录失败", icon: "none" });
         });
     },
     fail: () => {
@@ -140,8 +140,6 @@ export async function logout() {
     unbindOk = true;
   } catch (e: any) {
     console.warn("[auth] wechatUnbind failed:", e);
-    // 401 时 request 拦截器可能已 clearToken + handleWechatLogin，
-    // 这里解锁并跳 authPage 兜底
   }
 
   // 无论如何都清本地登录态
@@ -153,20 +151,22 @@ export async function logout() {
   Taro.hideLoading();
   unlockLogin();
 
-  if (unbindOk) {
-    // openid 已在后端清掉，走微信登录会返回 bound=false → 跳绑定页
-    handleWechatLogin();
-  } else {
-    // unbind 失败：openid 可能仍在后端绑着，
-    // 直接走 handleWechatLogin 会自动登录回原账号（等于没退出），
-    // 改跳 authPage 让用户手动决定（可点"重新获取凭证"走微信流程）
-    Taro.showToast({
-      title: "退出登录未完全成功，如需切换账号请重新绑定",
-      icon: "none",
-      duration: 2500,
-    });
-    Taro.reLaunch({ url: "/pages/authPage/index" });
+  // 最彻底的方案：清空所有 storage（包括项目选择、用户信息等），
+  // 然后 reLaunch 到 launch 页，launch 会重新走 init 流程
+  try {
+    Taro.clearStorageSync();
+  } catch (e) {
+    console.warn("[auth] clearStorage failed:", e);
   }
+
+  // reLaunch 销毁所有页面组件重新挂载，launch 页会触发 init
+  Taro.reLaunch({
+    url: "/pages/launch/index",
+    complete: () => {
+      // 兜底：如果 reLaunch 后 launch 页没自动走 init，强制重启
+      console.log("[auth] logout reLaunch complete");
+    },
+  });
 }
 
 export { setTempToken, getTempToken, clearTempToken };

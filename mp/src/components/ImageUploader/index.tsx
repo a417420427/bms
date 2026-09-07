@@ -33,7 +33,7 @@ const ImageUploader: FC<Props> = ({ value = [], max = 3, onChange }) => {
           }
           const next = [...list, ...uploaded];
           setList(next);
-          onChange?.(next);
+          onChange && onChange(next);
         } catch (e) {
           Taro.showToast({ title: "上传失败", icon: "none" });
         } finally {
@@ -50,7 +50,7 @@ const ImageUploader: FC<Props> = ({ value = [], max = 3, onChange }) => {
   const handleRemove = (idx: number) => {
     const next = list.filter((_, i) => i !== idx);
     setList(next);
-    onChange?.(next);
+    onChange && onChange(next);
   };
 
   return (

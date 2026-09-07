@@ -6,14 +6,16 @@ import Tag from "@/components/Tag";
 import Empty from "@/components/Empty";
 import { maskPhone } from "@/utils/common";
 import { formatDate } from "@/utils/dayjs";
+import { useShare } from "@/hooks/useShare";
 import "./index.scss";
 
 export default function AdminExpiredPool() {
+  useShare({ title: "商管营销宝 - 过期池" });
   const [list, setList] = useState<ExpiredPoolItem[]>([]);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [projectId, setProjectId] = useState<string | undefined>(
-    getLocalProject()?._id
+    getLocalProject() && getLocalProject()._id
   );
   const [loading, setLoading] = useState(false);
 
@@ -73,7 +75,7 @@ export default function AdminExpiredPool() {
             </View>
             <View className="expired-item__row">
               <Text className="expired-item__channel">
-                渠道员：{p.channelUser?.realName || "-"}
+                渠道员：{(p.channelUser && p.channelUser.realName) || "-"}
               </Text>
               {p.canReReport ? (
                 <Tag type="warning">可重新报备</Tag>

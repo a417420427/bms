@@ -12,8 +12,10 @@ export default function TabBar() {
   const color = "#999999";
   const selectedColor = "#1677ff";
 
-  const refreshList = (userInfo: UserInfoProp) => {
-    const ls = getBarList(userInfo.role);
+  const refreshList = (userInfo: UserInfoProp | null) => {
+    // userInfo 可能为 null（logout 时触发），用本地兜底
+    const role = (userInfo && userInfo.role) || getLocalUserInfo().role || "ROLE_SALES";
+    const ls = getBarList(role);
     setList(ls);
     const idx = ls.findIndex((l) => l.pagePath === route.path);
     setSelected(idx >= 0 ? idx : 0);
@@ -21,7 +23,7 @@ export default function TabBar() {
 
   useEffect(() => {
     refreshList(getLocalUserInfo());
-    const handler = (userInfo: UserInfoProp) => refreshList(userInfo);
+    const handler = (userInfo: UserInfoProp | null) => refreshList(userInfo);
     Taro.eventCenter.on("userInfoUpdate", handler);
     return () => {
       Taro.eventCenter.off("userInfoUpdate", handler);

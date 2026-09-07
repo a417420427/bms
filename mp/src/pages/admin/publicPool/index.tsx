@@ -12,14 +12,16 @@ import Empty from "@/components/Empty";
 import { maskPhone } from "@/utils/common";
 import { formatDate } from "@/utils/dayjs";
 import Modal from "@/components/Modal/Modal";
+import { useShare } from "@/hooks/useShare";
 import "./index.scss";
 
 export default function AdminPublicPool() {
+  useShare({ title: "商管营销宝 - 公共池" });
   const [list, setList] = useState<PublicPoolItem[]>([]);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [projectId, setProjectId] = useState<string | undefined>(
-    getLocalProject()?._id
+    getLocalProject() && getLocalProject()._id
   );
   const [loading, setLoading] = useState(false);
   const [assignModal, setAssignModal] = useState(false);

@@ -7,9 +7,11 @@ import Tag from "@/components/Tag";
 import { maskPhone } from "@/utils/common";
 import { formatDate } from "@/utils/dayjs";
 import dayjs from "@/utils/dayjs";
+import { useShare } from "@/hooks/useShare";
 import "./index.scss";
 
 export default function UnvisitedPool() {
+  useShare({ title: "商管营销宝 - 未到访池" });
   const [list, setList] = useState<any[]>([]);
 
   const load = () => {
@@ -47,7 +49,7 @@ export default function UnvisitedPool() {
       ) : (
         list.map((it) => {
           const customer = it.customerId || {};
-          const expired = it.customerId?.expireAt
+          const expired = (it.customerId && it.customerId.expireAt)
             ? dayjs(it.customerId.expireAt).diff(dayjs())
             : 0;
           return (
@@ -60,7 +62,7 @@ export default function UnvisitedPool() {
               </View>
               <View className="unvisited-item__row">
                 <Text>{maskPhone(customer.phone || "")}</Text>
-                <Text>推荐人: {customer.channelReferrer?.referrerName || "-"}</Text>
+                <Text>推荐人: {(customer.channelReferrer && customer.channelReferrer.referrerName) || "-"}</Text>
               </View>
               <View className="unvisited-item__row">
                 <Text className="unvisited-item__time">

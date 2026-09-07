@@ -3,9 +3,11 @@ import Taro from "@tarojs/taro";
 import { View, Text, Input, Textarea, Picker, Button } from "@tarojs/components";
 import { channelCreateCustomer, adminListCompanies } from "@/services/api";
 import { isValidPhone, maskPhone } from "@/utils/common";
+import { useShare } from "@/hooks/useShare";
 import "./index.scss";
 
 export default function ChannelCustomerCreate() {
+  useShare({ title: "商管营销宝 - 推荐客户" });
   const [type, setType] = useState<"A" | "B">("A");
   const [companyList, setCompanyList] = useState<any[]>([]);
   const [form, setForm] = useState<any>({
@@ -68,7 +70,7 @@ export default function ChannelCustomerCreate() {
             mode="selector"
             range={companyList.map((c) => c.name)}
             onChange={(e) =>
-              set("companyName", companyList[Number(e.detail.value)]?.name)
+              set("companyName", companyList[Number(e.detail.value)] && companyList[Number(e.detail.value)].name)
             }
           >
             <View className="form-item__picker">

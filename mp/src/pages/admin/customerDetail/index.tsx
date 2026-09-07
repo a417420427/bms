@@ -21,11 +21,13 @@ import {
 } from "@/utils/constants";
 import { maskPhone } from "@/utils/common";
 import { formatDate } from "@/utils/dayjs";
+import { useShare } from "@/hooks/useShare";
 import "./index.scss";
 
 const INTENT_OPTIONS = Object.keys(INTENT_LABELS);
 
 export default function AdminCustomerDetail() {
+  useShare({ title: "商管营销宝 - 客户详情" });
   const router = useRouter();
   const id = router.params.id;
   const [customer, setCustomer] = useState<CustomerItem | null>(null);
@@ -77,13 +79,13 @@ export default function AdminCustomerDetail() {
 
   // 移入公共池（二次确认）
   const moveToPublicPool = () => {
-    if (customer?.status === "PUBLIC_POOL") {
+    if ((customer && customer.status) === "PUBLIC_POOL") {
       Taro.showToast({ title: "该客户已在公共池", icon: "none" });
       return;
     }
     Taro.showModal({
       title: "确认操作",
-      content: `确定将「${customer?.name}」移入公共池吗？移入后该客户原归属销售员将被清空，其他销售员可申领。`,
+      content: `确定将「${customer && customer.name}」移入公共池吗？移入后该客户原归属销售员将被清空，其他销售员可申领。`,
       confirmText: "移入",
       confirmColor: "#ff4d4f",
       success: (res) => {
@@ -142,7 +144,7 @@ export default function AdminCustomerDetail() {
         </View>
         <View className="row">
           <Text className="row__label">销售员</Text>
-          <Text>{customer.owner?.realName || "-"}</Text>
+          <Text>{(customer.owner && customer.owner.realName) || "-"}</Text>
         </View>
         <View className="row">
           <Text className="row__label">到访时间</Text>
@@ -158,7 +160,7 @@ export default function AdminCustomerDetail() {
 
       <Card title="到访照片">
         <View className="photos">
-          {customer.visitPhotos?.length ? (
+          {(customer.visitPhotos && customer.visitPhotos.length) ? (
             customer.visitPhotos.map((p, i) => (
               <Image
                 key={i}
@@ -185,7 +187,7 @@ export default function AdminCustomerDetail() {
       >
         <View className="row">
           <Text className="row__label">当前销售</Text>
-          <Text>{customer.owner?.realName || "未分配"}</Text>
+          <Text>{(customer.owner && customer.owner.realName) || "未分配"}</Text>
         </View>
         {customer.status !== "PUBLIC_POOL" && (
           <View className="row">
@@ -226,10 +228,10 @@ export default function AdminCustomerDetail() {
             <View key={t._id} className="transfer-item">
               <View className="row">
                 <Text className="row__label">
-                  {t.fromUser?.realName || "系统"}
+                  {(t.fromUser && t.fromUser.realName) || "系统"}
                 </Text>
                 <Text className="row__arrow">→</Text>
-                <Text>{t.toUser?.realName || "-"}</Text>
+                <Text>{(t.toUser && t.toUser.realName) || "-"}</Text>
               </View>
               <View className="row">
                 <Text className="row__time">{formatDate(t.createdAt)}</Text>

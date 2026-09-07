@@ -4,9 +4,11 @@ import { View, Text, Input, Picker } from "@tarojs/components";
 import { adminListAuditLogs, adminListUsers } from "@/services/api";
 import Empty from "@/components/Empty";
 import { formatDate } from "@/utils/dayjs";
+import { useShare } from "@/hooks/useShare";
 import "./index.scss";
 
 export default function AdminAuditLog() {
+  useShare({ title: "商管营销宝 - 审计日志" });
   const [list, setList] = useState<AuditLogItem[]>([]);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
@@ -89,7 +91,7 @@ export default function AdminAuditLog() {
           range={["全部操作人", ...users.map((u) => u.realName || u.username)]}
           onChange={(e) => {
             const idx = Number(e.detail.value);
-            setUserId(idx === 0 ? "" : users[idx - 1]?._id || users[idx - 1]?.id || "");
+            setUserId(idx === 0 ? "" : (users[idx - 1] && users[idx - 1]._id) || (users[idx - 1] && users[idx - 1].id) || "");
           }}
         >
           <View className="admin-audit-log__picker">
@@ -110,7 +112,7 @@ export default function AdminAuditLog() {
           <View key={l._id} className="log-item">
             <View className="log-item__row">
               <Text className="log-item__operator">
-                {l.operator?.realName || l.operator?.username || "系统"}
+                {(l.operator && l.operator.realName) || (l.operator && l.operator.username) || "系统"}
               </Text>
               <Text className="log-item__time">
                 {formatDate(l.createdAt)}

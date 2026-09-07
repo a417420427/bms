@@ -8,12 +8,14 @@ import {
   getLocalProject,
 } from "@/services/api";
 import Empty from "@/components/Empty";
+import { useShare } from "@/hooks/useShare";
 import "./index.scss";
 
 export default function AdminConfig() {
+  useShare({ title: "商管营销宝 - 系统配置" });
   const [config, setConfig] = useState<SystemConfig | null>(null);
   const [projectId, setProjectId] = useState<string | undefined>(
-    getLocalProject()?._id
+    getLocalProject() && getLocalProject()._id
   );
   const [projects, setProjects] = useState<ProjectItem[]>([]);
   const [loading, setLoading] = useState(false);
@@ -69,11 +71,11 @@ export default function AdminConfig() {
           range={["全部项目", ...projects.map((p) => p.name)]}
           onChange={(e) => {
             const idx = Number(e.detail.value);
-            setProjectId(idx === 0 ? undefined : projects[idx - 1]?._id);
+            setProjectId(idx === 0 ? undefined : projects[idx - 1] && projects[idx - 1]._id);
           }}
         >
           <View className="admin-config__picker">
-            {projectIdx === 0 ? "全部项目（默认）" : projects[projectIdx - 1]?.name}
+            {projectIdx === 0 ? "全部项目（默认）" : (projects[projectIdx - 1] && projects[projectIdx - 1].name)}
           </View>
         </Picker>
       </View>
@@ -85,7 +87,7 @@ export default function AdminConfig() {
           <Input
             className="admin-config__input"
             type="number"
-            value={String(config.visitCountdownHours ?? 24)}
+            value={String(config.visitCountdownHours != null ? config.visitCountdownHours : 24)}
             onInput={(e) =>
               change("visitCountdownHours", Number(e.detail.value))
             }
@@ -100,7 +102,7 @@ export default function AdminConfig() {
           <Input
             className="admin-config__input"
             type="number"
-            value={String(config.followupReminderDays ?? 3)}
+            value={String(config.followupReminderDays != null ? config.followupReminderDays : 3)}
             onInput={(e) =>
               change("followupReminderDays", Number(e.detail.value))
             }
@@ -115,7 +117,7 @@ export default function AdminConfig() {
           <Input
             className="admin-config__input"
             type="number"
-            value={String(config.publicPoolRetentionDays ?? 30)}
+            value={String(config.publicPoolRetentionDays != null ? config.publicPoolRetentionDays : 30)}
             onInput={(e) =>
               change("publicPoolRetentionDays", Number(e.detail.value))
             }
@@ -130,7 +132,7 @@ export default function AdminConfig() {
           <Input
             className="admin-config__input"
             type="number"
-            value={String(config.expiredPoolRetentionDays ?? 90)}
+            value={String(config.expiredPoolRetentionDays != null ? config.expiredPoolRetentionDays : 90)}
             onInput={(e) =>
               change("expiredPoolRetentionDays", Number(e.detail.value))
             }
@@ -145,7 +147,7 @@ export default function AdminConfig() {
           <Input
             className="admin-config__input"
             type="number"
-            value={String(config.duplicateWindowHours ?? 72)}
+            value={String(config.duplicateWindowHours != null ? config.duplicateWindowHours : 72)}
             onInput={(e) =>
               change("duplicateWindowHours", Number(e.detail.value))
             }

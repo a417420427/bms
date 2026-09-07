@@ -7,9 +7,11 @@ import Empty from "@/components/Empty";
 import { SOURCE_LABELS, INTENT_LABELS, STATUS_LABELS } from "@/utils/constants";
 import { maskPhone } from "@/utils/common";
 import dayjs, { formatDate } from "@/utils/dayjs";
+import { useShare } from "@/hooks/useShare";
 import "./index.scss";
 
 export default function CustomerList() {
+  useShare({ title: "商管营销宝 - 我的客户" });
   const [list, setList] = useState<CustomerItem[]>([]);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
