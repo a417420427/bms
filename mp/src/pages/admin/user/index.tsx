@@ -7,6 +7,7 @@ import {
   adminUpdateUser,
   adminResetUserPassword,
   adminListProjects,
+  getLocalUserInfo,
 } from "@/services/api";
 import Tag from "@/components/Tag";
 import Empty from "@/components/Empty";
@@ -24,6 +25,8 @@ const ROLE_OPTIONS: RoleType[] = [
 
 export default function AdminUser() {
   useShare({ title: "商管营销宝 - 用户管理" });
+  // 0907: 仅系统管理员可新建/编辑用户
+  const isSystemAdmin = !!(getLocalUserInfo().isSystemAdmin);
   const [list, setList] = useState<UserInfoProp[]>([]);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
@@ -167,9 +170,11 @@ export default function AdminUser() {
 
   return (
     <View className="admin-user">
-      <Button className="admin-user__add" onClick={openCreate}>
-        + 新建用户
-      </Button>
+      {isSystemAdmin ? (
+        <Button className="admin-user__add" onClick={openCreate}>
+          + 新建用户
+        </Button>
+      ) : null}
 
       {list.length === 0 ? (
         <Empty text="暂无用户" />
@@ -185,18 +190,22 @@ export default function AdminUser() {
               <Text className="user-item__phone">{u.phone || "-"}</Text>
             </View>
             <View className="user-item__actions">
-              <Text
-                className="user-item__action"
-                onClick={() => openEdit(u)}
-              >
-                编辑
-              </Text>
-              <Text
-                className="user-item__action user-item__action--primary"
-                onClick={() => resetPwd(u)}
-              >
-                重置密码
-              </Text>
+              {isSystemAdmin ? (
+                <Text
+                  className="user-item__action"
+                  onClick={() => openEdit(u)}
+                >
+                  编辑
+                </Text>
+              ) : null}
+              {isSystemAdmin ? (
+                <Text
+                  className="user-item__action user-item__action--primary"
+                  onClick={() => resetPwd(u)}
+                >
+                  重置密码
+                </Text>
+              ) : null}
             </View>
           </View>
         ))

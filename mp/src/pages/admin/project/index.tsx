@@ -5,6 +5,7 @@ import {
   adminListProjects,
   adminCreateProject,
   adminUpdateProject,
+  getLocalUserInfo,
 } from "@/services/api";
 import Empty from "@/components/Empty";
 import Modal from "@/components/Modal/Modal";
@@ -13,6 +14,8 @@ import "./index.scss";
 
 export default function AdminProject() {
   useShare({ title: "商管营销宝 - 项目配置" });
+  // 0907: 仅系统管理员可新建/编辑项目
+  const isSystemAdmin = !!(getLocalUserInfo().isSystemAdmin);
   const [list, setList] = useState<ProjectItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [modal, setModal] = useState(false);
@@ -75,9 +78,11 @@ export default function AdminProject() {
 
   return (
     <View className="admin-project">
-      <Button className="admin-project__add" onClick={openCreate}>
-        + 新建项目
-      </Button>
+      {isSystemAdmin ? (
+        <Button className="admin-project__add" onClick={openCreate}>
+          + 新建项目
+        </Button>
+      ) : null}
 
       {list.length === 0 ? (
         <Empty text="暂无项目" />
@@ -86,7 +91,7 @@ export default function AdminProject() {
           <View
             key={p._id}
             className="project-item"
-            onClick={() => openEdit(p)}
+            onClick={isSystemAdmin ? () => openEdit(p) : undefined}
           >
             <View className="project-item__row">
               <Text className="project-item__name">{p.name}</Text>

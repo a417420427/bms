@@ -20,6 +20,15 @@ const config = {
     dir: process.env.UPLOAD_DIR || "uploads",
     baseUrl: process.env.UPLOAD_BASE_URL || "http://localhost:3000",
   },
+  // 0907: 阿里云 OSS 文件存储（用户自行配置 AccessKey）
+  oss: {
+    accessKeyId: process.env.OSS_ACCESS_KEY_ID || "",
+    accessKeySecret: process.env.OSS_ACCESS_KEY_SECRET || "",
+    region: process.env.OSS_REGION || "",
+    bucket: process.env.OSS_BUCKET || "",
+    // CDN 或自定义域名（可选）
+    endpoint: process.env.OSS_ENDPOINT || "",
+  },
   wechat: {
     appid: process.env.WX_APPID || "",
     secret: process.env.WX_SECRET || "",

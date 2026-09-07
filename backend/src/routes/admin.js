@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const { wrap } = require("../utils/response");
 const { auth } = require("../middleware/auth");
-const { onlyAdmin } = require("../middleware/role");
+const { onlyAdmin, requireSystemAdmin } = require("../middleware/role");
 const { projectContext } = require("../middleware/projectContext");
 
 const dashboardCtrl = require("../controllers/admin/dashboardController");
@@ -23,6 +23,7 @@ router.get("/dashboard", wrap(dashboardCtrl.dashboard));
 
 // 客户
 router.get("/customers", wrap(customerCtrl.list));
+router.post("/customer", wrap(customerCtrl.create));
 router.get("/customer/:id", wrap(customerCtrl.detail));
 router.put("/customer/:id", wrap(customerCtrl.update));
 router.post("/assign-customer", wrap(customerCtrl.assign));
@@ -47,19 +48,19 @@ router.post("/export-customers", exportCtrl.exportCustomers);
 
 // 项目
 router.get("/projects", wrap(projectCtrl.list));
-router.post("/projects", wrap(projectCtrl.create));
-router.put("/projects/:id", wrap(projectCtrl.update));
+router.post("/projects", requireSystemAdmin, wrap(projectCtrl.create));
+router.put("/projects/:id", requireSystemAdmin, wrap(projectCtrl.update));
 
 // 用户
 router.get("/users", wrap(userCtrl.list));
-router.post("/users", wrap(userCtrl.create));
-router.put("/users/:id", wrap(userCtrl.update));
-router.post("/users/:id/reset-password", wrap(userCtrl.resetPassword));
+router.post("/users", requireSystemAdmin, wrap(userCtrl.create));
+router.put("/users/:id", requireSystemAdmin, wrap(userCtrl.update));
+router.post("/users/:id/reset-password", requireSystemAdmin, wrap(userCtrl.resetPassword));
 
 // 合作公司
 router.get("/companies", wrap(companyCtrl.list));
-router.post("/companies", wrap(companyCtrl.create));
-router.put("/companies/:id", wrap(companyCtrl.update));
+router.post("/companies", requireSystemAdmin, wrap(companyCtrl.create));
+router.put("/companies/:id", requireSystemAdmin, wrap(companyCtrl.update));
 
 // 系统配置
 router.get("/config", wrap(configCtrl.get));

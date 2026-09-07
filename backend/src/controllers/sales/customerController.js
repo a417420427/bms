@@ -184,6 +184,7 @@ exports.list = async (req, res) => {
 };
 
 // GET /api/sales/customer/:id
+// 0907: 手机号加密，非管理员只能看自己客户的手机号
 exports.detail = async (req, res) => {
   const { id } = req.params;
   if (!mongoose.isValidObjectId(id)) throw new BizError("客户ID无效", 400);
@@ -200,6 +201,12 @@ exports.detail = async (req, res) => {
   const isOwner = customer.owner?._id?.toString() === req.user._id.toString();
   if (!isOwner && customer.status !== "PUBLIC_POOL") {
     throw new BizError("无权访问该客户", 403);
+  }
+
+  // 0907: 非归属人（公共池）脱敏手机号
+  if (!isOwner) {
+    const { maskPhone } = require("../../utils/validators");
+    customer.phone = maskPhone(customer.rawPhone || customer.phone);
   }
 
   return { data: customer };

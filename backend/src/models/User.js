@@ -22,6 +22,8 @@ const UserSchema = new Schema(
     accessibleProjects: [{ type: Schema.Types.ObjectId, ref: "Project" }],
     currentProject: { type: Schema.Types.ObjectId, ref: "Project", default: null },
     status: { type: String, enum: ["ACTIVE", "DISABLED"], default: "ACTIVE" },
+    // 0907: 系统管理员（唯一账号）拥有全部权限；新增管理员（多项目）仅可调阅，不能新增项目/角色/公司
+    isSystemAdmin: { type: Boolean, default: false },
     // 微信小程序绑定
     openid: { type: String, default: null, index: true },
     unionid: { type: String, default: null },

@@ -4,12 +4,13 @@ const Customer = require("../../models/Customer");
 const Approval = require("../../models/Approval");
 const { APPROVAL_TYPE, APPROVAL_RESULT } = require("../../models/Approval");
 const { BizError } = require("../../utils/response");
-const { parsePaging } = require("../../utils/validators");
+const { parsePaging, maskPhone } = require("../../utils/validators");
 const { writeAudit } = require("../../utils/audit");
 const { AUDIT_ACTION } = require("../../utils/constants");
 
 // GET /api/sales/public-pool
 // 销售员可申领的公共池客户
+// 0907: 手机号加密，非管理员只能看自己客户的手机号
 exports.list = async (req, res) => {
   const { projectId } = req.projectContext;
   const { page, pageSize, skip } = parsePaging(req.query);
@@ -25,7 +26,7 @@ exports.list = async (req, res) => {
     PublicPool.find(filter)
       .populate({
         path: "customerId",
-        select: "name phone source intentLevel status visitTime owner",
+        select: "name phone rawPhone isMasked source intentLevel status visitTime owner",
         populate: { path: "owner", select: "realName username" },
       })
       .sort({ releasedAt: -1 })
@@ -35,15 +36,24 @@ exports.list = async (req, res) => {
     PublicPool.countDocuments(filter),
   ]);
 
-  // 转换结构使其符合 PublicPoolItem 类型
-  const out = list.map((p) => ({
-    _id: p._id,
-    customer: p.customerId,
-    customerId: p.customerId?._id,
-    reason: p.reason,
-    releasedAt: p.releasedAt,
-    pendingApprovalId: p.pendingApprovalId,
-  }));
+  const uid = req.user._id.toString();
+  // 转换结构使其符合 PublicPoolItem 类型，同时脱敏手机号
+  const out = list.map((p) => {
+    const c = p.customerId;
+    const isOwner = c && c.owner && c.owner._id && c.owner._id.toString() === uid;
+    if (c && !isOwner) {
+      // 非管理员且非归属人：脱敏手机号
+      c.phone = maskPhone(c.rawPhone || c.phone);
+    }
+    return {
+      _id: p._id,
+      customer: c,
+      customerId: c ? c._id : null,
+      reason: p.reason,
+      releasedAt: p.releasedAt,
+      pendingApprovalId: p.pendingApprovalId,
+    };
+  });
 
   return { data: { list: out, total, page, pageSize } };
 };

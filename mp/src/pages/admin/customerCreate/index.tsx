@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Taro from "@tarojs/taro";
 import { View, Text, Input, Textarea, Picker, Button } from "@tarojs/components";
 import {
-  salesCheckDuplicate,
-  salesCreateCustomer,
+  adminCreateCustomer,
+  adminListCompanies,
+  adminListUsers,
 } from "@/services/api";
 import ImageUploader from "@/components/ImageUploader";
 import {
@@ -11,29 +12,27 @@ import {
   INTENT_LABELS,
   CUSTOMER_SOURCE,
 } from "@/utils/constants";
-import { isValidPhone, debounce } from "@/utils/common";
+import { isValidPhone } from "@/utils/common";
 import { useShare } from "@/hooks/useShare";
 import "./index.scss";
 
-// 0907: 销售员仅可选 自访/自拓
-const SALES_SOURCE_OPTIONS = [CUSTOMER_SOURCE.SELF_VISIT, CUSTOMER_SOURCE.SELF_DEVELOP];
+// 0907: 管理员可选全部到访渠道
+const ADMIN_SOURCE_OPTIONS = Object.keys(SOURCE_LABELS);
 const INTENT_OPTIONS = Object.keys(INTENT_LABELS);
 
 function pad(n: number) {
   return n < 10 ? "0" + n : "" + n;
 }
-
 function todayStr() {
   const d = new Date();
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 }
-
 function nowTimeStr() {
   const d = new Date();
   return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
-export default function CustomerCreate() {
+export default function AdminCustomerCreate() {
   useShare({ title: "商管营销宝 - 新增客户" });
   const [form, setForm] = useState<any>({
     name: "",
@@ -45,51 +44,66 @@ export default function CustomerCreate() {
     intentLevel: "MEDIUM",
     remark: "",
     visitPhotos: [],
+    companyId: "",
+    referrerName: "",
+    ownerId: "",
   });
-  const [dupMsg, setDupMsg] = useState("");
+  const [companyList, setCompanyList] = useState<any[]>([]);
+  const [salesList, setSalesList] = useState<any[]>([]);
 
   const set = (k: string, v: any) => setForm((p) => ({ ...p, [k]: v }));
 
-  const checkPhone = debounce(async (phone: string) => {
-    if (!isValidPhone(phone)) return;
-    try {
-      const res: any = await salesCheckDuplicate(phone);
-      if (res.exists || res.duplicated) {
-        setDupMsg("该手机号已存在，提交后将发起冲突审批");
-      } else {
-        setDupMsg("");
-      }
-    } catch (_) {}
-  }, 400);
+  // 渠道公司推荐时拉取合作公司列表
+  useEffect(() => {
+    if (form.source === CUSTOMER_SOURCE.CHANNEL_COMPANY && companyList.length === 0) {
+      adminListCompanies().then((res: any) => setCompanyList(res || []));
+    }
+  }, [form.source]);
+
+  // 拉取销售员列表（可选归属人）
+  useEffect(() => {
+    if (salesList.length === 0) {
+      adminListUsers({ role: "ROLE_SALES" }).then((res: any) => {
+        setSalesList(Array.isArray(res) ? res : (res && res.list) || []);
+      });
+    }
+  }, []);
 
   const handleSubmit = async () => {
     if (!form.name) return Taro.showToast({ title: "请填写姓名", icon: "none" });
     if (!isValidPhone(form.phone)) return Taro.showToast({ title: "手机号格式错误", icon: "none" });
-    if (!form.visitDate || !form.visitTime) return Taro.showToast({ title: "请选择到访时间", icon: "none" });
+    if (!form.visitDate || !form.visitTime) return Taro.showToast({ title: "请选择预计到访时间", icon: "none" });
+    if (form.source === CUSTOMER_SOURCE.CHANNEL_COMPANY && !form.companyId) {
+      return Taro.showToast({ title: "请选择渠道公司", icon: "none" });
+    }
+    if (form.source === CUSTOMER_SOURCE.PERSONAL_REFERRAL && !form.referrerName) {
+      return Taro.showToast({ title: "请填写推荐人姓名", icon: "none" });
+    }
 
     // 拼接日期+时间为 ISO 字符串
     const visitTimeISO = new Date(`${form.visitDate}T${form.visitTime}:00`).toISOString();
 
     try {
-      const res: any = await salesCreateCustomer({
-        ...form,
+      await adminCreateCustomer({
+        name: form.name,
+        phone: form.phone,
+        age: form.age,
+        source: form.source,
+        intentLevel: form.intentLevel,
         visitTime: visitTimeISO,
+        visitPhotos: form.visitPhotos,
+        remark: form.remark,
+        companyId: form.source === CUSTOMER_SOURCE.CHANNEL_COMPANY ? form.companyId : undefined,
+        referrerName: form.source === CUSTOMER_SOURCE.PERSONAL_REFERRAL ? form.referrerName : undefined,
+        ownerId: form.ownerId || undefined,
       });
-      if (res.needApproval) {
-        Taro.showModal({
-          title: "已发起冲突审批",
-          content: "客户冲突，已自动发起审批，待管理员同意后归档",
-          showCancel: false,
-        });
-      } else {
-        Taro.showToast({ title: "录入成功", icon: "success" });
-      }
+      Taro.showToast({ title: "录入成功", icon: "success" });
       setTimeout(() => Taro.navigateBack(), 800);
     } catch (_) {}
   };
 
   return (
-    <View className="customer-form">
+    <View className="admin-customer-form">
       <View className="form-item">
         <Text className="form-item__label">客户姓名*</Text>
         <Input
@@ -105,12 +119,8 @@ export default function CustomerCreate() {
           type="number"
           maxlength={11}
           value={form.phone}
-          onInput={(e) => {
-            set("phone", e.detail.value);
-            checkPhone(e.detail.value);
-          }}
+          onInput={(e) => set("phone", e.detail.value)}
         />
-        {dupMsg ? <Text className="form-item__warn">{dupMsg}</Text> : null}
       </View>
       <View className="form-item">
         <Text className="form-item__label">年龄</Text>
@@ -125,16 +135,48 @@ export default function CustomerCreate() {
         <Text className="form-item__label">到访渠道*</Text>
         <Picker
           mode="selector"
-          range={SALES_SOURCE_OPTIONS.map((k) => SOURCE_LABELS[k])}
-          onChange={(e) => set("source", SALES_SOURCE_OPTIONS[Number(e.detail.value)])}
+          range={ADMIN_SOURCE_OPTIONS.map((k) => SOURCE_LABELS[k])}
+          onChange={(e) => set("source", ADMIN_SOURCE_OPTIONS[Number(e.detail.value)])}
         >
           <View className="form-item__picker">
             {SOURCE_LABELS[form.source]}
           </View>
         </Picker>
       </View>
+
+      {/* 渠道公司推荐：选择合作公司 */}
+      {form.source === CUSTOMER_SOURCE.CHANNEL_COMPANY ? (
+        <View className="form-item">
+          <Text className="form-item__label">渠道公司*</Text>
+          <Picker
+            mode="selector"
+            range={companyList.map((c) => c.name)}
+            onChange={(e) => {
+              const c = companyList[Number(e.detail.value)];
+              if (c) set("companyId", c._id);
+            }}
+          >
+            <View className="form-item__picker">
+              {(companyList.find((c) => c._id === form.companyId) || {}).name || "请选择"}
+            </View>
+          </Picker>
+        </View>
+      ) : null}
+
+      {/* 个人推荐：推荐人姓名 */}
+      {form.source === CUSTOMER_SOURCE.PERSONAL_REFERRAL ? (
+        <View className="form-item">
+          <Text className="form-item__label">推荐人姓名*</Text>
+          <Input
+            className="form-item__input"
+            value={form.referrerName}
+            onInput={(e) => set("referrerName", e.detail.value)}
+          />
+        </View>
+      ) : null}
+
       <View className="form-item">
-        <Text className="form-item__label">到访时间*</Text>
+        <Text className="form-item__label">预计到访时间*</Text>
         <View className="form-item__datetime">
           <Picker
             mode="date"
@@ -162,6 +204,26 @@ export default function CustomerCreate() {
           <View className="form-item__picker">{INTENT_LABELS[form.intentLevel]}</View>
         </Picker>
       </View>
+
+      {/* 可选：指定归属销售员 */}
+      <View className="form-item">
+        <Text className="form-item__label">归属销售员（可选）</Text>
+        <Picker
+          mode="selector"
+          range={salesList.map((s) => (s.realName || s.username) + (s.phone ? " " + s.phone : ""))}
+          onChange={(e) => {
+            const s = salesList[Number(e.detail.value)];
+            if (s) set("ownerId", s._id);
+          }}
+        >
+          <View className="form-item__picker">
+            {(salesList.find((s) => s._id === form.ownerId) || {}).realName
+              || (salesList.find((s) => s._id === form.ownerId) || {}).username
+              || "不指定（待分配）"}
+          </View>
+        </Picker>
+      </View>
+
       <View className="form-item">
         <Text className="form-item__label">到访现场水印照片（可选）</Text>
         <ImageUploader
@@ -178,7 +240,7 @@ export default function CustomerCreate() {
           onInput={(e) => set("remark", e.detail.value)}
         />
       </View>
-      <Button className="customer-form__submit" onClick={handleSubmit}>
+      <Button className="admin-customer-form__submit" onClick={handleSubmit}>
         提交
       </Button>
     </View>

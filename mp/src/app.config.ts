@@ -21,6 +21,7 @@ export default defineAppConfig({
     "pages/channel/expiredPool/index",
     // 管理员
     "pages/admin/dashboard/index",
+    "pages/admin/customerCreate/index",
     "pages/admin/customerList/index",
     "pages/admin/customerDetail/index",
     "pages/admin/publicPool/index",

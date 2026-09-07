@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Taro from "@tarojs/taro";
 import { View, Text, Input, Textarea, Picker, Button } from "@tarojs/components";
 import { channelCreateCustomer, adminListCompanies } from "@/services/api";
@@ -6,88 +6,81 @@ import { isValidPhone, maskPhone } from "@/utils/common";
 import { useShare } from "@/hooks/useShare";
 import "./index.scss";
 
+function pad(n: number) {
+  return n < 10 ? "0" + n : "" + n;
+}
+function todayStr() {
+  const d = new Date();
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+function nowTimeStr() {
+  const d = new Date();
+  return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+// 0907: 渠道员只负责推荐，表单仅保留：渠道公司、姓名、电话、预计到访时间
 export default function ChannelCustomerCreate() {
   useShare({ title: "商管营销宝 - 推荐客户" });
-  const [type, setType] = useState<"A" | "B">("A");
   const [companyList, setCompanyList] = useState<any[]>([]);
   const [form, setForm] = useState<any>({
-    companyName: "",
-    referrerName: "",
+    companyId: "",
     name: "",
     phone: "",
-    reportTime: new Date().toLocaleString(),
+    visitDate: todayStr(),
+    visitTime: nowTimeStr(),
     remark: "",
   });
 
   const set = (k: string, v: any) => setForm((p) => ({ ...p, [k]: v }));
 
-  // 切换为 A 类时拉取合作公司
-  const switchType = (t: "A" | "B") => {
-    setType(t);
-    if (t === "A" && companyList.length === 0) {
-      adminListCompanies().then((res: any) => setCompanyList(res));
-    }
-  };
+  // 0907: 第一行就是选择渠道，进入页面即拉取合作公司列表
+  useEffect(() => {
+    adminListCompanies().then((res: any) => setCompanyList(res || []));
+  }, []);
 
   const handleSubmit = async () => {
-    if (!form.name) return Taro.showToast({ title: "请填写姓名", icon: "none" });
-    if (!isValidPhone(form.phone)) return Taro.showToast({ title: "手机号错误", icon: "none" });
-    if (type === "A" && !form.companyName) return Taro.showToast({ title: "请选择合作公司", icon: "none" });
-    if (type === "B" && !form.referrerName) return Taro.showToast({ title: "请填写推荐人", icon: "none" });
+    if (!form.companyId) return Taro.showToast({ title: "请选择渠道公司", icon: "none" });
+    if (!form.name) return Taro.showToast({ title: "请填写客户姓名", icon: "none" });
+    if (!isValidPhone(form.phone)) return Taro.showToast({ title: "手机号格式错误", icon: "none" });
+    if (!form.visitDate || !form.visitTime) return Taro.showToast({ title: "请选择预计到访时间", icon: "none" });
+
+    // 拼接日期+时间为 ISO 字符串
+    const visitTimeISO = new Date(`${form.visitDate}T${form.visitTime}:00`).toISOString();
 
     try {
-      await channelCreateCustomer(type, {
-        ...form,
-        // A 类脱敏手机号
-        phone: type === "A" ? maskPhone(form.phone) : form.phone,
+      // A类（公司推荐）：手机号前三后四脱敏
+      await channelCreateCustomer("A", {
+        name: form.name,
+        phone: maskPhone(form.phone),
+        companyId: form.companyId,
+        recommendTime: visitTimeISO,
+        remark: form.remark,
       });
-      Taro.showToast({ title: "提交成功", icon: "success" });
+      Taro.showToast({ title: "推荐成功", icon: "success" });
       setTimeout(() => Taro.navigateBack(), 800);
     } catch (_) {}
   };
 
+  const selectedCompany = companyList.find((c) => c._id === form.companyId);
+
   return (
     <View className="channel-form">
-      <View className="type-switch">
-        <View
-          className={type === "A" ? "active" : ""}
-          onClick={() => switchType("A")}
+      {/* 0907: 录入页面第一行就是选择渠道 */}
+      <View className="form-item">
+        <Text className="form-item__label">选择渠道公司*</Text>
+        <Picker
+          mode="selector"
+          range={companyList.map((c) => c.name)}
+          onChange={(e) => {
+            const c = companyList[Number(e.detail.value)];
+            if (c) set("companyId", c._id);
+          }}
         >
-          A 类（公司推荐）
-        </View>
-        <View
-          className={type === "B" ? "active" : ""}
-          onClick={() => switchType("B")}
-        >
-          B 类（个人推荐）
-        </View>
+          <View className="form-item__picker">
+            {(selectedCompany && selectedCompany.name) || "请选择"}
+          </View>
+        </Picker>
       </View>
-
-      {type === "A" ? (
-        <View className="form-item">
-          <Text className="form-item__label">合作公司*</Text>
-          <Picker
-            mode="selector"
-            range={companyList.map((c) => c.name)}
-            onChange={(e) =>
-              set("companyName", companyList[Number(e.detail.value)] && companyList[Number(e.detail.value)].name)
-            }
-          >
-            <View className="form-item__picker">
-              {form.companyName || "请选择"}
-            </View>
-          </Picker>
-        </View>
-      ) : (
-        <View className="form-item">
-          <Text className="form-item__label">经纪人/推荐人姓名*</Text>
-          <Input
-            className="form-item__input"
-            value={form.referrerName}
-            onInput={(e) => set("referrerName", e.detail.value)}
-          />
-        </View>
-      )}
 
       <View className="form-item">
         <Text className="form-item__label">客户姓名*</Text>
@@ -97,10 +90,9 @@ export default function ChannelCustomerCreate() {
           onInput={(e) => set("name", e.detail.value)}
         />
       </View>
+
       <View className="form-item">
-        <Text className="form-item__label">
-          手机号*{type === "A" ? "（前三后四脱敏）" : ""}
-        </Text>
+        <Text className="form-item__label">电话*（前三后四脱敏）</Text>
         <Input
           className="form-item__input"
           type="number"
@@ -108,16 +100,29 @@ export default function ChannelCustomerCreate() {
           value={form.phone}
           onInput={(e) => set("phone", e.detail.value)}
         />
+        <Text className="form-item__hint">提交时自动脱敏为 138****1234 格式</Text>
       </View>
+
       <View className="form-item">
-        <Text className="form-item__label">推荐时间*</Text>
-        <Picker
-          mode="date"
-          onChange={(e) => set("reportTimeDate", e.detail.value)}
-        >
-          <View className="form-item__picker">{form.reportTime}</View>
-        </Picker>
+        <Text className="form-item__label">预计到访时间*</Text>
+        <View className="form-item__datetime">
+          <Picker
+            mode="date"
+            value={form.visitDate}
+            onChange={(e) => set("visitDate", e.detail.value)}
+          >
+            <View className="form-item__picker">{form.visitDate}</View>
+          </Picker>
+          <Picker
+            mode="time"
+            value={form.visitTime}
+            onChange={(e) => set("visitTime", e.detail.value)}
+          >
+            <View className="form-item__picker">{form.visitTime}</View>
+          </Picker>
+        </View>
       </View>
+
       <View className="form-item">
         <Text className="form-item__label">备注</Text>
         <Textarea

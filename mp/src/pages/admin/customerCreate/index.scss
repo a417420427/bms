@@ -1,4 +1,4 @@
-.customer-form {
+.admin-customer-form {
   padding: 16rpx;
   background: #fff;
   min-height: 100vh;
@@ -35,9 +35,9 @@
         flex: 1;
       }
     }
-    &__warn {
+    &__hint {
       display: block;
-      color: #ff4d4f;
+      color: #999;
       font-size: 24rpx;
       margin-top: 8rpx;
     }

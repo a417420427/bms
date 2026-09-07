@@ -27,6 +27,8 @@ function serializeUser(user) {
     role: user.role,
     phone: user.phone,
     avatar: user.avatar || "",
+    // 0907: 系统管理员标识（唯一账号拥有全部权限）
+    isSystemAdmin: !!user.isSystemAdmin,
     currentProject: user.currentProject
       ? {
           _id: user.currentProject._id || user.currentProject,

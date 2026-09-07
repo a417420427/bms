@@ -3,7 +3,7 @@ const path = require("path");
 const fs = require("fs");
 const config = require("../config");
 const { BizError } = require("../utils/response");
-const { saveWatermarkedPhoto } = require("../utils/watermark");
+const { saveWatermarkedPhoto, uploadToOss } = require("../utils/watermark");
 const Project = require("../models/Project");
 
 // 内存存储（用于水印处理后再写盘）
@@ -50,24 +50,29 @@ exports.visitPhoto = (req, res, next) => {
 // 通用文件上传（不加水印，头像等）
 exports.generic = (req, res, next) => {
   const genericUpload = multer({
-    storage: multer.diskStorage({
-      destination: (req, file, cb) => {
-        const dir = path.join(__dirname, "../../", config.upload.dir);
-        if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-        cb(null, dir);
-      },
-      filename: (req, file, cb) => {
-        const ext = path.extname(file.originalname) || ".jpg";
-        cb(null, `${Date.now()}_${Math.random().toString(36).slice(2, 10)}${ext}`);
-      },
-    }),
+    storage: multer.memoryStorage(),
     limits: { fileSize: 10 * 1024 * 1024 },
   }).single("file");
 
-  genericUpload(req, res, (err) => {
+  genericUpload(req, res, async (err) => {
     if (err) return next(err);
     if (!req.file) return next(new BizError("未上传文件", 400));
-    const url = `${config.upload.baseUrl}/${config.upload.dir}/${req.file.filename}`;
+
+    const ext = path.extname(req.file.originalname) || ".jpg";
+    const filename = `${Date.now()}_${Math.random().toString(36).slice(2, 10)}${ext}`;
+
+    // 0907: 优先 OSS
+    const ossUrl = await uploadToOss(req.file.buffer, filename).catch(() => null);
+    if (ossUrl) {
+      return res.json({ code: 0, message: "ok", data: { url: ossUrl } });
+    }
+
+    // 回退本地磁盘
+    const dir = path.join(__dirname, "../../", config.upload.dir);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    const full = path.join(dir, filename);
+    await fs.promises.writeFile(full, req.file.buffer);
+    const url = `${config.upload.baseUrl}/${config.upload.dir}/${filename}`;
     return res.json({ code: 0, message: "ok", data: { url } });
   });
 };

@@ -47,6 +47,8 @@ declare global {
     role: RoleType;
     phone: string;
     avatar?: string;
+    // 0907: 系统管理员标识（唯一账号拥有全部权限）
+    isSystemAdmin?: boolean;
     currentProject: ProjectItem | null;
     accessibleProjects: ProjectItem[];
     [key: string]: any;

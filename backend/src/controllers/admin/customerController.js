@@ -2,11 +2,107 @@ const mongoose = require("mongoose");
 const Customer = require("../../models/Customer");
 const Followup = require("../../models/Followup");
 const TransferLog = require("../../models/TransferLog");
+const Company = require("../../models/Company");
 const { BizError } = require("../../utils/response");
-const { parsePaging } = require("../../utils/validators");
+const { isValidPhone, isWithinOffset, parsePaging } = require("../../utils/validators");
 const { writeAudit } = require("../../utils/audit");
 const { writeTransferLog } = require("../../utils/transferLog");
-const { AUDIT_ACTION, TRANSFER_ACTION, CUSTOMER_STATUS } = require("../../utils/constants");
+const { AUDIT_ACTION, TRANSFER_ACTION, CUSTOMER_STATUS, CUSTOMER_SOURCE } = require("../../utils/constants");
+
+// POST /api/admin/customer
+// 0907: 管理员新增客户录入，支持全部到访渠道（自访/自拓/渠道公司推荐/个人推荐）
+// 选择渠道公司推荐时需传 companyId；到访时间字段语义为"预计到访时间"
+exports.create = async (req, res) => {
+  const {
+    name,
+    phone,
+    age,
+    source,
+    intentLevel,
+    visitTime,
+    visitPhotos = [],
+    remark,
+    companyId,
+    referrerName,
+    ownerId,
+  } = req.body || {};
+
+  if (!name) throw new BizError("客户姓名必填", 400);
+  if (!phone || !isValidPhone(phone)) throw new BizError("手机号格式不正确", 400);
+  if (!source || !Object.values(CUSTOMER_SOURCE).includes(source)) {
+    throw new BizError("到访渠道不合法", 400);
+  }
+  if (!intentLevel) throw new BizError("意向等级必填", 400);
+  if (!visitTime) throw new BizError("预计到访时间必填", 400);
+
+  const ctx = req.projectContext;
+
+  // 渠道公司推荐需选择合作公司
+  let company = null;
+  if (source === CUSTOMER_SOURCE.CHANNEL_COMPANY) {
+    if (!companyId) throw new BizError("渠道公司推荐需选择合作公司", 400);
+    company = await Company.findOne({ _id: companyId, projectId: ctx.projectId });
+    if (!company) throw new BizError("合作公司不存在", 404);
+  }
+
+  // 校验预计到访时间偏移
+  const SystemConfig = require("../../models/SystemConfig");
+  const config = require("../../config");
+  const sysCfg = (await SystemConfig.findOne({ projectId: { $in: [ctx.projectId, null] } }).sort({ projectId: -1 })) || {};
+  const offsetHours = sysCfg.visitMaxOffsetHours ?? config.business.visitCountdownHours;
+  if (!isWithinOffset(visitTime, offsetHours)) {
+    throw new BizError(`预计到访时间不能晚于系统时间 ${offsetHours} 小时以上`, 400);
+  }
+
+  // 查重（同项目）
+  const exist = await Customer.findOne({
+    projectId: ctx.projectId,
+    $or: [{ phone, isMasked: false }, { rawPhone: phone }],
+  }).lean();
+  if (exist) throw new BizError("客户手机号已存在", 409);
+
+  // 指定归属销售员（可选）
+  let owner = null;
+  if (ownerId) {
+    const User = require("../../models/User");
+    owner = await User.findOne({ _id: ownerId, role: "ROLE_SALES", accessibleProjects: ctx.projectId });
+    if (!owner) throw new BizError("销售员不存在或无该项目权限", 404);
+  }
+
+  const customer = await Customer.create({
+    name,
+    phone,
+    rawPhone: phone,
+    age,
+    source,
+    intentLevel,
+    status: CUSTOMER_STATUS.ACTIVE,
+    visitTime: new Date(visitTime),
+    visitPhotos,
+    remark,
+    projectId: ctx.projectId,
+    owner: owner ? owner._id : null,
+    company: company ? company._id : null,
+    referrerName: referrerName || null,
+    lastFollowupAt: new Date(visitTime),
+  });
+
+  await customer.populate("owner", "realName username phone");
+  await customer.populate("company", "name");
+
+  await writeAudit({
+    operator: req.user._id,
+    operatorName: req.user.realName || req.user.username,
+    action: AUDIT_ACTION.CUSTOMER_CREATE,
+    module: "ADMIN",
+    target: name,
+    projectId: ctx.projectId,
+    detail: { customerId: customer._id, source, ownerId: owner ? owner._id : null },
+    ip: req.ip,
+  });
+
+  return { data: customer };
+};
 
 // GET /api/admin/customers
 // 多维筛选：项目、来源类型、归属人、意向等级、客户状态、时间范围、搜索

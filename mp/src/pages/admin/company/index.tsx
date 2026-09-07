@@ -7,6 +7,7 @@ import {
   adminUpdateCompany,
   adminListProjects,
   getLocalProject,
+  getLocalUserInfo,
 } from "@/services/api";
 import Empty from "@/components/Empty";
 import Modal from "@/components/Modal/Modal";
@@ -15,6 +16,8 @@ import "./index.scss";
 
 export default function AdminCompany() {
   useShare({ title: "商管营销宝 - 公司管理" });
+  // 0907: 仅系统管理员可新建/编辑公司
+  const isSystemAdmin = !!(getLocalUserInfo().isSystemAdmin);
   const [list, setList] = useState<CompanyItem[]>([]);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
@@ -109,9 +112,11 @@ export default function AdminCompany() {
 
   return (
     <View className="admin-company">
-      <Button className="admin-company__add" onClick={openCreate}>
-        + 新建公司
-      </Button>
+      {isSystemAdmin ? (
+        <Button className="admin-company__add" onClick={openCreate}>
+          + 新建公司
+        </Button>
+      ) : null}
 
       {list.length === 0 ? (
         <Empty text="暂无渠道公司" />
@@ -120,7 +125,7 @@ export default function AdminCompany() {
           <View
             key={c._id}
             className="company-item"
-            onClick={() => openEdit(c)}
+            onClick={isSystemAdmin ? () => openEdit(c) : undefined}
           >
             <View className="company-item__row">
               <Text className="company-item__name">{c.name}</Text>

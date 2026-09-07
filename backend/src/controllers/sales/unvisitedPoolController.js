@@ -3,12 +3,13 @@ const Customer = require("../../models/Customer");
 const Approval = require("../../models/Approval");
 const { APPROVAL_TYPE, APPROVAL_RESULT } = require("../../models/Approval");
 const { BizError } = require("../../utils/response");
-const { parsePaging } = require("../../utils/validators");
+const { parsePaging, maskPhone } = require("../../utils/validators");
 const { writeAudit } = require("../../utils/audit");
 const { AUDIT_ACTION } = require("../../utils/constants");
 
 // GET /api/sales/unvisited-pool
 // 渠道员推荐但尚未被销售申领的客户（status=UNVISITED，归属未定）
+// 0907: 手机号加密，非管理员只能看自己客户的手机号（未到访池客户归属未定，一律脱敏）
 exports.list = async (req, res) => {
   const { projectId } = req.projectContext;
   const { page, pageSize, skip } = parsePaging(req.query);
@@ -33,19 +34,14 @@ exports.list = async (req, res) => {
     Customer.countDocuments(filter),
   ]);
 
-  // 脱敏：A类渠道推荐手机号脱敏
+  // 0907: 未到访池客户归属未定，一律脱敏手机号
   const out = list.map((c) => {
-    if (c.isMasked) c.phone = maskPhoneSafe(c.phone);
+    c.phone = maskPhone(c.rawPhone || c.phone);
     return c;
   });
 
   return { data: { list: out, total, page, pageSize } };
 };
-
-function maskPhoneSafe(phone) {
-  if (!phone || phone.length < 7) return phone;
-  return phone.slice(0, 3) + "****" + phone.slice(-4);
-}
 
 // POST /api/sales/unvisited-pool/claim
 // 申领未到访客户 → 生成审批待办

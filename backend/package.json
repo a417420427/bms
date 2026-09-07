@@ -9,6 +9,7 @@
     "prod": "NODE_ENV=production node src/app.js"
   },
   "dependencies": {
+    "ali-oss": "^6.21.0",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",

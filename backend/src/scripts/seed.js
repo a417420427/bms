@@ -15,8 +15,12 @@ async function ensureDefaultAdmin() {
       const projects = await Project.find({ status: "ACTIVE" }).select("_id").lean();
       exists.accessibleProjects = projects.map((p) => p._id);
       if (!exists.currentProject) exists.currentProject = projects[0]?._id || null;
-      await exists.save();
     }
+    // 0907: 确保默认管理员为系统管理员
+    if (!exists.isSystemAdmin) {
+      exists.isSystemAdmin = true;
+    }
+    await exists.save();
     return false;
   }
 
@@ -41,6 +45,7 @@ async function ensureDefaultAdmin() {
     accessibleProjects: [project._id],
     currentProject: project._id,
     status: "ACTIVE",
+    isSystemAdmin: true, // 0907: 默认管理员为系统管理员（唯一账号，全部权限）
   });
 
   // 默认全局系统配置

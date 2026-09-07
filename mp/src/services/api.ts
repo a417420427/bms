@@ -235,6 +235,11 @@ export const adminListCustomers = (data: any) => {
   return http.get<Paginated<CustomerItem>>("/admin/customers", data);
 };
 
+// 0907: 管理员新增客户录入（支持全部到访渠道 + 渠道公司选择）
+export const adminCreateCustomer = (data: any) => {
+  return http.post<CustomerItem>("/admin/customer", data);
+};
+
 export const adminGetCustomer = (id: string) => {
   return http.get<CustomerItem>(`/admin/customer/${id}`);
 };
