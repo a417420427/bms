@@ -2,72 +2,26 @@ import { PropsWithChildren, useEffect } from "react";
 import Taro, { useDidShow, useLaunch } from "@tarojs/taro";
 import { UserProvider } from "@/contexts/UserContext";
 
-import { ROLE_HOME } from "@/utils/constants";
 import "./app.scss";
-import { getToken, getLocalUserInfo, setLocalUserInfo } from "./services/api";
-import { handleWechatLogin } from "./services/auth";
 
-// 全局事件总线
-const eventBus = {
-  events: {} as Record<string, Function[]>,
-  on(eventName: string, callback: Function) {
-    if (!this.events[eventName]) {
-      this.events[eventName] = [];
-    }
-    if (!this.events[eventName].includes(callback)) {
-      this.events[eventName].push(callback);
-    }
-  },
-  off(eventName: string, callback?: Function) {
-    if (!this.events[eventName]) return;
-    if (callback) {
-      this.events[eventName] = this.events[eventName].filter(fn => fn !== callback);
-    } else {
-      this.events[eventName] = [];
-    }
-  },
-  emit(eventName: string, ...args: any[]) {
-    if (!this.events[eventName]) return;
-    this.events[eventName].forEach((callback: Function) => {
-      callback(...args);
-    });
-  }
-};
-
-(Taro as any).eventBus = eventBus;
+// O5: 统一使用 Taro.eventCenter，移除自定义 eventBus
+// 启动时的 token 验证 + 角色路由分发由 launch 守卫页负责（V6/V7/O3）
 
 function App({ children }: PropsWithChildren<any>) {
-  const initAppData = async () => {
-    Taro.setInnerAudioOption({ obeyMuteSwitch: false });
-    const token = getToken();
-    if (!token) {
-      // 未登录：走微信登录流程
-      handleWechatLogin();
-      return;
-    }
-    // 已登录：直接进对应角色首页，不再跳转登录页
-    const userInfo = getLocalUserInfo();
-    (Taro as any).eventBus.emit('userInfoUpdate', userInfo);
-    setLocalUserInfo(userInfo);
-    const currentPages = Taro.getCurrentPages();
-    const currentPath = currentPages[0]?.path;
-    const home = ROLE_HOME[userInfo.role] || ROLE_HOME.ROLE_SALES;
-    if (currentPath !== home) {
-      Taro.reLaunch({ url: home });
-    }
-  };
-
   useLaunch(async () => {
-    await initAppData();
+    Taro.setInnerAudioOption({ obeyMuteSwitch: false });
+    // V6/O3: pages[0] 为 launch 守卫页，由它负责 token 验证与角色路由分发
+    // app.tsx 不再重复 initAppData，避免与 launch 页逻辑冲突导致重复跳转/403
   });
 
   useEffect(() => {
+    // O5: refreshAppData 也走 Taro.eventCenter，不再用自定义 eventBus
     const handleRefreshApp = async () => {
-      await initAppData();
+      // 启动后刷新数据交给各页面在 useDidShow 自行处理
     };
-    eventBus.on("refreshAppData", handleRefreshApp);
+    Taro.eventCenter.on("refreshAppData", handleRefreshApp);
     return () => {
-      eventBus.off("refreshAppData", handleRefreshApp);
+      Taro.eventCenter.off("refreshAppData", handleRefreshApp);
     };
   }, []);
 
@@ -76,12 +30,6 @@ function App({ children }: PropsWithChildren<any>) {
   });
 
   return <UserProvider>{children}</UserProvider>;
-}
-
-declare module '@tarojs/taro' {
-  interface TaroStatic {
-    eventBus: typeof eventBus;
-  }
 }
 
 export default App;

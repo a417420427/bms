@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import Taro, { usePullDownRefresh, useReachBottom } from "@tarojs/taro";
+import { useState, useEffect, useRef } from "react";
+import Taro, { usePullDownRefresh, useReachBottom, useDidShow } from "@tarojs/taro";
 import { View, Text, Input, Picker } from "@tarojs/components";
 import {
   adminListCustomers,
@@ -62,6 +62,17 @@ export default function AdminCustomerList() {
   useEffect(() => {
     load(1);
   }, [status, intentLevel, projectId]);
+
+  // 页面显示时刷新第 1 页（从新增/详情页返回能看到最新数据）
+  // 用 ref 跳过首次，避免与上面的 useEffect 重复
+  const initedRef = useRef(false);
+  useDidShow(() => {
+    if (!initedRef.current) {
+      initedRef.current = true;
+      return;
+    }
+    load(1);
+  });
 
   usePullDownRefresh(() => load(1));
   useReachBottom(() => {

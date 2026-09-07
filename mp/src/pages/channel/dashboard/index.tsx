@@ -4,6 +4,7 @@ import { View, Text } from "@tarojs/components";
 import { channelDashboard, getLocalProject } from "@/services/api";
 import StatCard from "@/components/StatCard";
 import Empty from "@/components/Empty";
+import { go } from "@/utils/common";
 import "./index.scss";
 
 interface Stats {
@@ -25,8 +26,6 @@ export default function ChannelDashboard() {
     channelDashboard().then((res: any) => setStats(res));
   }, []);
 
-  const go = (url: string) => Taro.navigateTo({ url });
-
   return (
     <View className="channel-dashboard">
       <View className="channel-dashboard__project">
@@ -42,7 +41,7 @@ export default function ChannelDashboard() {
         <View className="action-item" onClick={() => go("/pages/channel/customerCreate/index")}>新增推荐客户</View>
         <View className="action-item" onClick={() => go("/pages/channel/customerList/index")}>我的推荐客户</View>
         <View className="action-item" onClick={() => go("/pages/channel/expiredPool/index")}>过期客户池</View>
-        <View className="action-item" onClick={() => Taro.switchTab({ url: "/pages/mine/index" })}>个人中心</View>
+        <View className="action-item" onClick={() => go("/pages/mine/index")}>个人中心</View>
       </View>
       {!stats ? <Empty text="加载中..." /> : null}
     </View>

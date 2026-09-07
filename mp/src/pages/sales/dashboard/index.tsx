@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import Taro from "@tarojs/taro";
 import { View, Text } from "@tarojs/components";
-import { salesDashboard } from "@/services/api";
+import { salesDashboard, getLocalProject } from "@/services/api";
 import StatCard from "@/components/StatCard";
 import Empty from "@/components/Empty";
-import { getLocalProject } from "@/services/api";
+import { go } from "@/utils/common";
 import "./index.scss";
 
 interface Stats {
@@ -26,8 +26,6 @@ export default function SalesDashboard() {
     }
     salesDashboard().then((res: any) => setStats(res));
   }, []);
-
-  const go = (url: string) => Taro.navigateTo({ url });
 
   return (
     <View className="sales-dashboard">

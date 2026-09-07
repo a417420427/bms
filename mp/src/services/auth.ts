@@ -1,74 +1,172 @@
 import Taro from "@tarojs/taro";
 import { ROLE_HOME } from "@/utils/constants";
-import { wechatLogin, setToken, getLocalUserInfo, setLocalUserInfo } from "./api";
+import {
+  wechatLogin,
+  wechatUnbind,
+  setToken,
+  clearToken,
+  clearLocalUserInfo,
+  setLocalUserInfo,
+} from "./api";
 
+// V15: tempToken 通过 storage 中转，避免出现在 URL 里
+const TEMP_TOKEN_KEY = "bms_temp_token";
+const TEMP_TOKEN_EXPIRE = 5 * 60 * 1000; // 5 分钟内有效
+
+// L3: isLoggingIn 加超时自动重置（5 秒），避免异常时永久卡住
 let isLoggingIn = false;
+let loggingInTimer: any = null;
+const lockLogin = () => {
+  isLoggingIn = true;
+  if (loggingInTimer) clearTimeout(loggingInTimer);
+  loggingInTimer = setTimeout(() => {
+    isLoggingIn = false;
+    loggingInTimer = null;
+  }, 5000);
+};
+const unlockLogin = () => {
+  isLoggingIn = false;
+  if (loggingInTimer) {
+    clearTimeout(loggingInTimer);
+    loggingInTimer = null;
+  }
+};
+
+// V15: 设置/读取 tempToken（带 5 分钟过期）
+const setTempToken = (token: string) => {
+  Taro.setStorageSync(TEMP_TOKEN_KEY, JSON.stringify({ token, ts: Date.now() }));
+};
+const getTempToken = (): string => {
+  try {
+    const data = JSON.parse(Taro.getStorageSync(TEMP_TOKEN_KEY) || "null");
+    if (!data) return "";
+    if (Date.now() - data.ts > TEMP_TOKEN_EXPIRE) {
+      Taro.removeStorageSync(TEMP_TOKEN_KEY);
+      return "";
+    }
+    return data.token;
+  } catch {
+    return "";
+  }
+};
+const clearTempToken = () => {
+  try { Taro.removeStorageSync(TEMP_TOKEN_KEY); } catch {}
+};
 
 /**
  * 微信小程序登录：用 wx.login() 的 code 换取后端 token
  */
 export function handleWechatLogin() {
   if (isLoggingIn) return;
-  isLoggingIn = true;
+  lockLogin();
   Taro.showLoading({ title: "登录中...", mask: true });
 
   Taro.login({
     success: (res) => {
       if (!res.code) {
         Taro.hideLoading();
+        unlockLogin();
         Taro.showToast({ title: "获取登录凭证失败", icon: "none" });
         return;
       }
       wechatLogin(res.code)
         .then((response: any) => {
           Taro.hideLoading();
-          console.log('登录成功', response);
+          unlockLogin();
+          console.log('[auth] wechatLogin response:', response);
           if (response.bound && response.token) {
             // 已绑定账号：跳转到对应角色首页
             setToken(response.token);
             setLocalUserInfo(response.user);
-            (Taro as any).eventBus?.emit?.("userInfoUpdate", response.user);
+            Taro.eventCenter.trigger("userInfoUpdate", response.user);
             const home = ROLE_HOME[response.user.role] || ROLE_HOME.ROLE_SALES;
             Taro.reLaunch({ url: home });
           } else if (!response.bound && response.tempToken) {
-            // 未绑定账号，跳转到账号绑定页
-            Taro.redirectTo({
-              url: `/pages/authPage/index?tempToken=${response.tempToken}`,
-            });
+            // 未绑定账号：tempToken 走 storage 中转，再跳转绑定页
+            setTempToken(response.tempToken);
+            Taro.redirectTo({ url: "/pages/authPage/index" });
           }
         })
-        .catch(() => {
+        .catch((err) => {
           Taro.hideLoading();
-          Taro.showToast({ title: "登录失败", icon: "none" });
+          unlockLogin();
+          // L4: catch 里 clearToken，避免 401 死循环
+          clearToken();
+          console.error('[auth] wechatLogin failed:', err);
+          Taro.showToast({ title: err?.message || "登录失败", icon: "none" });
         });
     },
     fail: () => {
       Taro.hideLoading();
+      unlockLogin();
       Taro.showToast({ title: "登录失败", icon: "none" });
-    },
-    complete: () => {
-      isLoggingIn = false;
     },
   });
 }
 
-/** 账号密码登录（备用，用于后台绑定流程） */
+/** 账号密码登录（备用，PC 后台用） */
 export function passwordLogin(username: string, password: string, redirectUrl = "/pages/sales/dashboard/index") {
   return import("./api").then(({ login }) => {
     return login(username, password).then((res: any) => {
       setToken(res.token);
       setLocalUserInfo(res.user);
-      (Taro as any).eventBus?.emit?.("userInfoUpdate", res.user);
+      Taro.eventCenter.trigger("userInfoUpdate", res.user);
       Taro.reLaunch({ url: redirectUrl });
       return res;
     });
   });
 }
 
-/** 退出登录 */
-export function logout() {
-  const { clearToken } = require("./api");
+/**
+ * 退出登录
+ * V5: 真正退出 — 调后端解绑 openid + 清本地 token + 清本地用户信息
+ * L1: 退出后走 handleWechatLogin，避免用户卡在 authPage
+ *
+ * 关键：只有 wechatUnbind 成功后才走 handleWechatLogin（此时 openid 已清，
+ *   后端会返回 bound=false → 跳绑定页）。
+ *   如果 unbind 失败（token 过期/网络错误），openid 仍在后端绑着，
+ *   此时若调 handleWechatLogin 会直接 bound=true 自动登录回原账号，
+ *   等于退出无效。失败时改跳 authPage，让用户手动重新走绑定流程。
+ */
+export async function logout() {
+  // 防止重复点击
+  if (isLoggingIn) return;
+  lockLogin();
+  Taro.showLoading({ title: "退出中...", mask: true });
+
+  let unbindOk = false;
+  try {
+    await wechatUnbind();
+    unbindOk = true;
+  } catch (e: any) {
+    console.warn("[auth] wechatUnbind failed:", e);
+    // 401 时 request 拦截器可能已 clearToken + handleWechatLogin，
+    // 这里解锁并跳 authPage 兜底
+  }
+
+  // 无论如何都清本地登录态
   clearToken();
-  (Taro as any).eventBus?.emit?.("userInfoUpdate", getLocalUserInfo());
-  Taro.reLaunch({ url: "/pages/authPage/index" });
+  clearLocalUserInfo();
+  clearTempToken();
+  Taro.eventCenter.trigger("userInfoUpdate", null);
+
+  Taro.hideLoading();
+  unlockLogin();
+
+  if (unbindOk) {
+    // openid 已在后端清掉，走微信登录会返回 bound=false → 跳绑定页
+    handleWechatLogin();
+  } else {
+    // unbind 失败：openid 可能仍在后端绑着，
+    // 直接走 handleWechatLogin 会自动登录回原账号（等于没退出），
+    // 改跳 authPage 让用户手动决定（可点"重新获取凭证"走微信流程）
+    Taro.showToast({
+      title: "退出登录未完全成功，如需切换账号请重新绑定",
+      icon: "none",
+      duration: 2500,
+    });
+    Taro.reLaunch({ url: "/pages/authPage/index" });
+  }
 }
+
+export { setTempToken, getTempToken, clearTempToken };

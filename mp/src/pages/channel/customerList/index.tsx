@@ -1,11 +1,10 @@
-import { useState, useEffect } from "react";
-import Taro, { usePullDownRefresh, useReachBottom } from "@tarojs/taro";
+import { useState } from "react";
+import Taro, { usePullDownRefresh, useReachBottom, useDidShow } from "@tarojs/taro";
 import { View, Text, Input } from "@tarojs/components";
 import { channelListCustomers } from "@/services/api";
 import Tag from "@/components/Tag";
 import Empty from "@/components/Empty";
-import { formatDate } from "@/utils/dayjs";
-import dayjs from "@/utils/dayjs";
+import dayjs, { formatDate } from "@/utils/dayjs";
 import "./index.scss";
 
 export default function ChannelCustomerList() {
@@ -23,7 +22,8 @@ export default function ChannelCustomerList() {
     });
   };
 
-  useEffect(() => load(1), []);
+  // 每次进入页面都刷新第 1 页
+  useDidShow(() => load(1));
   usePullDownRefresh(() => load(1));
   useReachBottom(() => {
     if (list.length < total) load(page + 1);

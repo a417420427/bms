@@ -5,6 +5,7 @@ import { adminDashboard, getLocalProject } from "@/services/api";
 import StatCard from "@/components/StatCard";
 import Empty from "@/components/Empty";
 import ProjectSelect from "@/components/ProjectSelect";
+import { go } from "@/utils/common";
 import "./index.scss";
 
 interface Stats {
@@ -28,8 +29,6 @@ export default function AdminDashboard() {
   useEffect(() => {
     load();
   }, [project?._id]);
-
-  const go = (url: string) => Taro.navigateTo({ url });
 
   return (
     <View className="admin-dashboard">

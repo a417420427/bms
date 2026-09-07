@@ -4,6 +4,7 @@ const Project = require("../models/Project");
 const SystemConfig = require("../models/SystemConfig");
 const config = require("../config");
 const logger = require("../utils/logger");
+const { BCRYPT_ROUNDS } = require("../utils/constants");
 
 // 启动时确保默认管理员存在
 async function ensureDefaultAdmin() {
@@ -33,7 +34,7 @@ async function ensureDefaultAdmin() {
 
   const user = await User.create({
     username,
-    password: await bcrypt.hash(password, 10),
+    password: await bcrypt.hash(password, BCRYPT_ROUNDS),
     realName,
     phone,
     role: "ROLE_ADMIN",
@@ -68,7 +69,7 @@ async function ensureTestUsers() {
     if (exists) continue;
     await User.create({
       ...item,
-      password: await bcrypt.hash(item.password, 10),
+      password: await bcrypt.hash(item.password, BCRYPT_ROUNDS),
       accessibleProjects: [project._id],
       currentProject: project._id,
       status: "ACTIVE",

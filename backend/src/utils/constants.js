@@ -71,6 +71,9 @@ const TRANSFER_ACTION = {
   CONFLICT_APPROVED: "CONFLICT_APPROVED",
 };
 
+// V12: bcrypt rounds，提到 12 增加暴力破解成本
+const BCRYPT_ROUNDS = 12;
+
 module.exports = {
   ROLE,
   CUSTOMER_SOURCE,
@@ -79,4 +82,5 @@ module.exports = {
   FOLLOWUP_METHOD,
   AUDIT_ACTION,
   TRANSFER_ACTION,
+  BCRYPT_ROUNDS,
 };

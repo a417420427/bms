@@ -113,6 +113,7 @@ export default function CustomerCreate() {
         <Text className="form-item__label">到访时间*</Text>
         <Picker
           mode="date"
+          value={form.visitTime}
           onChange={(e) => set("visitTimeDate", e.detail.value)}
         >
           <View className="form-item__picker">{form.visitTime}</View>

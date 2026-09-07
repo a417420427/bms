@@ -30,6 +30,11 @@ class HttpRequest {
   // 不需要登录的接口白名单
   private whiteList = ["/auth/login", "/auth/wechat/login", "/auth/wechat/bind"];
 
+  // V14: 用 startsWith 匹配，兼容 URL 带 query 参数的情况
+  private isWhitelisted(url: string): boolean {
+    return this.whiteList.some((w) => url === w || url.startsWith(w + "?") || url.startsWith(w + "&"));
+  }
+
   public async request<T = any>(config: RequestConfig): Promise<T> {
     const { getToken, clearToken } = require("./api");
     const { handleWechatLogin } = require("./auth");
@@ -43,7 +48,7 @@ class HttpRequest {
       ...config,
     };
 
-    if (!getToken() && !this.whiteList.includes(mergedConfig.url)) {
+    if (!getToken() && !this.isWhitelisted(mergedConfig.url)) {
       clearToken();
       handleWechatLogin();
       return Promise.reject({ errMsg: "未登录" });

@@ -1,11 +1,19 @@
 require("dotenv").config();
 
+const env = process.env.NODE_ENV || "development";
+
+// V1: 生产环境强制要求 JWT_SECRET，避免使用默认值导致 token 可伪造
+const jwtSecret = process.env.JWT_SECRET;
+if (!jwtSecret && env === "production") {
+  throw new Error("[config] 生产环境必须在 .env 中配置 JWT_SECRET");
+}
+
 const config = {
-  env: process.env.NODE_ENV || "development",
+  env,
   port: parseInt(process.env.PORT, 10) || 3000,
   mongoUri: process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/bms",
   jwt: {
-    secret: process.env.JWT_SECRET || "dev-secret-change-me",
+    secret: jwtSecret || "dev-secret-change-me",
     expiresIn: process.env.JWT_EXPIRES_IN || "7d",
   },
   upload: {

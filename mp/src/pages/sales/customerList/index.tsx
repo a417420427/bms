@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import Taro, { usePullDownRefresh, useReachBottom } from "@tarojs/taro";
+import { useState } from "react";
+import Taro, { usePullDownRefresh, useReachBottom, useDidShow } from "@tarojs/taro";
 import { View, Text, Input } from "@tarojs/components";
 import { salesListCustomers } from "@/services/api";
 import Tag from "@/components/Tag";
@@ -31,10 +31,8 @@ export default function CustomerList() {
       });
   };
 
-  useEffect(() => {
-    load(1);
-  }, []);
-
+  // 每次进入页面都刷新第 1 页（从新增/详情页返回时能看到最新数据）
+  useDidShow(() => load(1));
   usePullDownRefresh(() => load(1));
   useReachBottom(() => {
     if (list.length < total) load(page + 1);

@@ -1,4 +1,5 @@
 // 通用工具
+import Taro from "@tarojs/taro";
 import { ROLE } from "./constants";
 
 export const ROLE_LABELS: Record<string, string> = {
@@ -40,4 +41,30 @@ export const debounce = <T extends (...args: any[]) => any>(fn: T, delay = 300) 
     if (timer) clearTimeout(timer);
     timer = setTimeout(() => fn(...args), delay);
   };
+};
+
+// tabBar 页面路径（与 app.config.ts tabBar.list 对齐）
+// navigateTo 不能跳 tabBar 页，必须用 switchTab
+export const TAB_BAR_PAGES = [
+  "pages/sales/dashboard/index",
+  "pages/sales/customerList/index",
+  "pages/channel/dashboard/index",
+  "pages/channel/customerList/index",
+  "pages/admin/dashboard/index",
+  "pages/admin/customerList/index",
+  "pages/admin/unvisitedApproval/index",
+  "pages/mine/index",
+];
+
+/**
+ * 统一路由跳转：tabBar 页用 switchTab，其余用 navigateTo
+ * 用法：go("/pages/sales/customerList/index") 或 go("/pages/sales/customerCreate/index?id=1")
+ */
+export const go = (url: string) => {
+  const path = url.replace(/^\//, "").split("?")[0];
+  if (TAB_BAR_PAGES.includes(path)) {
+    Taro.switchTab({ url });
+  } else {
+    Taro.navigateTo({ url });
+  }
 };

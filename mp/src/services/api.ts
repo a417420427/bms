@@ -60,6 +60,15 @@ export const setLocalUserInfo = (userInfo: UserInfoProp): void => {
   }
 };
 
+/** V5/L1: 清除本地用户信息（logout 时调用） */
+export const clearLocalUserInfo = (): void => {
+  try {
+    Taro.removeStorageSync(LOCAL_USER_INFO_KEY);
+  } catch (e) {
+    console.error("清除用户信息失败:", e);
+  }
+};
+
 export const getLocalProject = (): ProjectItem | null => {
   try {
     return JSON.parse(Taro.getStorageSync(LOCAL_PROJECT_KEY)) || null;
@@ -85,7 +94,13 @@ export const login = (username: string, password: string) => {
 
 /** 微信小程序登录（用 code 换 openid） */
 export const wechatLogin = (code: string) => {
-  return http.post<{ bound: boolean; user?: UserInfoProp; token?: string; tempToken?: string; openid?: string }>("/auth/wechat/login", { code });
+  // V9: 后端不再返回 openid
+  return http.post<{ bound: boolean; user?: UserInfoProp; token?: string; tempToken?: string }>("/auth/wechat/login", { code });
+};
+
+/** O1: 拉取当前登录用户最新信息（用于启动时验证 token 有效性） */
+export const getMe = () => {
+  return http.get<UserInfoProp>("/auth/me");
 };
 
 /** 开发环境专用：按 username 直接换取对应用户的 token（仅 dev） */
@@ -228,8 +243,16 @@ export const adminUpdateCustomer = (id: string, data: any) => {
   return http.put(`/admin/customer/${id}`, data);
 };
 
-export const adminAssignCustomer = (customerId: string, targetUserId: string) => {
-  return http.post("/admin/assign-customer", { customerId, targetUserId });
+export const adminAssignCustomer = (
+  customerId: string,
+  targetUserId: string,
+  moveToPublicPool: boolean = false
+) => {
+  return http.post("/admin/assign-customer", {
+    customerId,
+    targetUserId,
+    moveToPublicPool,
+  });
 };
 
 export const adminListFollowups = (customerId: string) => {

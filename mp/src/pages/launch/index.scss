@@ -1,0 +1,12 @@
+.launch {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background: #f5f6fa;
+
+  &__text {
+    font-size: 28px;
+    color: #999;
+  }
+}

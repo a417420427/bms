@@ -26,7 +26,9 @@ export default function Mine() {
     setUserInfo(getLocalUserInfo());
     const handler = (data: UserInfoProp) => setUserInfo(data);
     Taro.eventCenter.on("userInfoUpdate", handler);
-    return () => Taro.eventCenter.off("userInfoUpdate", handler);
+    return () => {
+      Taro.eventCenter.off("userInfoUpdate", handler)
+    };
   }, []);
 
   useEffect(() => {

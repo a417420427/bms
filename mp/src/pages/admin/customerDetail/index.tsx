@@ -75,6 +75,27 @@ export default function AdminCustomerDetail() {
     });
   };
 
+  // 移入公共池（二次确认）
+  const moveToPublicPool = () => {
+    if (customer?.status === "PUBLIC_POOL") {
+      Taro.showToast({ title: "该客户已在公共池", icon: "none" });
+      return;
+    }
+    Taro.showModal({
+      title: "确认操作",
+      content: `确定将「${customer?.name}」移入公共池吗？移入后该客户原归属销售员将被清空，其他销售员可申领。`,
+      confirmText: "移入",
+      confirmColor: "#ff4d4f",
+      success: (res) => {
+        if (!res.confirm) return;
+        adminAssignCustomer(id!, "", true).then(() => {
+          Taro.showToast({ title: "已移入公共池", icon: "success" });
+          load();
+        });
+      },
+    });
+  };
+
   const submitEdit = () => {
     if (!editForm.name || !editForm.phone) {
       Taro.showToast({ title: "请填写完整", icon: "none" });
@@ -166,6 +187,16 @@ export default function AdminCustomerDetail() {
           <Text className="row__label">当前销售</Text>
           <Text>{customer.owner?.realName || "未分配"}</Text>
         </View>
+        {customer.status !== "PUBLIC_POOL" && (
+          <View className="row">
+            <Button
+              className="public-pool-btn"
+              onClick={moveToPublicPool}
+            >
+              移入公共池
+            </Button>
+          </View>
+        )}
       </Card>
 
       <Card title="跟进记录">

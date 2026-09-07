@@ -1,5 +1,7 @@
 export default defineAppConfig({
   pages: [
+    // V6/O3: 启动路由守卫页作为 pages[0]，避免非 sales 角色启动时误触发 sales/dashboard 请求导致 403
+    "pages/launch/index",
     // 销售
     "pages/sales/dashboard/index",
     // 公共
