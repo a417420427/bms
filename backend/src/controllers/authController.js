@@ -94,6 +94,7 @@ exports.wechatLogin = async (req, res) => {
   }
 
   const user = await User.findOne({ openid }).populate("currentProject accessibleProjects");
+  console.log('[wechatLogin] openid:', openid, 'matched user:', user ? `${user.username}(${user.role})` : 'null');
   if (user) {
     if (user.status === "DISABLED") throw new BizError("账号已禁用", 403);
     // V11: 微信登录补审计日志
