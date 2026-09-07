@@ -1,0 +1,71 @@
+.customer-detail {
+  padding-bottom: 32rpx;
+
+  .row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12rpx 0;
+    font-size: 28rpx;
+    &__label {
+      color: #666;
+    }
+    &__time {
+      font-size: 24rpx;
+      color: #999;
+    }
+  }
+
+  .photos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16rpx;
+    &__item {
+      width: 200rpx;
+      height: 200rpx;
+      border-radius: 12rpx;
+    }
+  }
+
+  .followup-item {
+    padding: 16rpx 0;
+    border-bottom: 1rpx solid #f0f0f0;
+    &:last-child { border-bottom: none; }
+    &__content {
+      margin-top: 8rpx;
+      font-size: 28rpx;
+      color: #333;
+    }
+    &__result {
+      margin-top: 4rpx;
+      font-size: 24rpx;
+      color: #666;
+    }
+  }
+
+  .followup-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16rpx;
+
+    .form-item__picker {
+      height: 80rpx;
+      line-height: 80rpx;
+      font-size: 28rpx;
+    }
+    .form-item__textarea {
+      width: 100%;
+      height: 160rpx;
+      border: 1rpx solid #ddd;
+      border-radius: 8rpx;
+      padding: 16rpx;
+      font-size: 28rpx;
+    }
+    &__btn {
+      background: #1677ff;
+      color: #fff;
+      border-radius: 12rpx;
+      border: none;
+    }
+  }
+}

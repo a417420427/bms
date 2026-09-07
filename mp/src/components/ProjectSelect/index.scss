@@ -1,0 +1,21 @@
+.empty-tip {
+  text-align: center;
+  padding: 60rpx 0;
+  color: #999;
+}
+
+.project-item {
+  padding: 24rpx 16rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+
+  &__name {
+    font-size: 30rpx;
+    color: #1a1a1a;
+  }
+
+  &__code {
+    font-size: 24rpx;
+    color: #999;
+    margin-top: 8rpx;
+  }
+}

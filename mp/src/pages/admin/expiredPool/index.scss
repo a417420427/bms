@@ -1,0 +1,31 @@
+.admin-expired-pool {
+  padding: 16rpx;
+
+  .expired-item {
+    background: #fff;
+    padding: 24rpx;
+    margin-bottom: 16rpx;
+    border-radius: 16rpx;
+    box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+
+    &__row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12rpx;
+      &:last-child { margin-bottom: 0; }
+    }
+
+    &__name {
+      font-size: 32rpx;
+      font-weight: 600;
+    }
+
+    &__phone,
+    &__time,
+    &__channel {
+      font-size: 24rpx;
+      color: #666;
+    }
+  }
+}

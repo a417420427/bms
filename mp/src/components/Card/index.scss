@@ -1,0 +1,30 @@
+.card-block {
+  margin: 16rpx;
+  background: #fff;
+  border-radius: 16rpx;
+  overflow: hidden;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 24rpx;
+    border-bottom: 1rpx solid #f0f0f0;
+  }
+
+  &__title {
+    font-size: 30rpx;
+    font-weight: 600;
+    color: #1a1a1a;
+  }
+
+  &__extra {
+    font-size: 26rpx;
+    color: #1677ff;
+  }
+
+  &body {
+    padding: 24rpx;
+  }
+}

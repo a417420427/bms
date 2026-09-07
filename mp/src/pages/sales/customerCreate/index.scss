@@ -1,0 +1,46 @@
+.customer-form {
+  padding: 16rpx;
+  background: #fff;
+  min-height: 100vh;
+
+  .form-item {
+    padding: 24rpx 16rpx;
+    border-bottom: 1rpx solid #f0f0f0;
+
+    &__label {
+      display: block;
+      font-size: 26rpx;
+      color: #666;
+      margin-bottom: 12rpx;
+    }
+    &__input {
+      height: 80rpx;
+      font-size: 30rpx;
+    }
+    &__textarea {
+      width: 100%;
+      height: 160rpx;
+      font-size: 30rpx;
+    }
+    &__picker {
+      height: 80rpx;
+      line-height: 80rpx;
+      font-size: 30rpx;
+      color: #1a1a1a;
+    }
+    &__warn {
+      display: block;
+      color: #ff4d4f;
+      font-size: 24rpx;
+      margin-top: 8rpx;
+    }
+  }
+
+  &__submit {
+    margin: 32rpx 16rpx;
+    background: #1677ff;
+    color: #fff;
+    border-radius: 12rpx;
+    border: none;
+  }
+}

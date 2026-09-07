@@ -1,0 +1,30 @@
+.custom-header {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 88rpx;
+  background: #fff;
+  border-bottom: 1rpx solid #f0f0f0;
+
+  &__back {
+    position: absolute;
+    left: 24rpx;
+    font-size: 48rpx;
+    color: #1a1a1a;
+    line-height: 1;
+  }
+
+  &__title {
+    font-size: 32rpx;
+    font-weight: 600;
+    color: #1a1a1a;
+  }
+
+  &__right {
+    position: absolute;
+    right: 24rpx;
+    display: flex;
+    align-items: center;
+  }
+}

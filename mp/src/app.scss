@@ -1,0 +1,46 @@
+/* 全局公共样式 */
+page {
+  background-color: #f5f6fa;
+  font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", "PingFang SC",
+    "Microsoft YaHei", sans-serif;
+  font-size: 28px;
+  color: #1a1a1a;
+}
+
+/* 通用 flex 布局 */
+.flex {
+  display: flex;
+}
+.flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.flex-1 {
+  flex: 1;
+}
+
+/* 卡片 */
+.card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 24px;
+  margin: 16px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+}
+
+/* 主题色 */
+.primary {
+  color: #1677ff;
+}
+.bg-primary {
+  background-color: #1677ff;
+}
+.warn {
+  color: #ff4d4f;
+}

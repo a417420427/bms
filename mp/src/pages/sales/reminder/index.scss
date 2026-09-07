@@ -1,0 +1,20 @@
+.reminder {
+  padding: 16rpx;
+  .reminder-item {
+    background: #fff;
+    padding: 24rpx;
+    margin-bottom: 16rpx;
+    border-radius: 16rpx;
+    box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+    &__row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12rpx;
+      font-size: 26rpx;
+      color: #666;
+    }
+    &__name { font-size: 32rpx; font-weight: 600; color: #1a1a1a; }
+    &__time { font-size: 24rpx; color: #999; }
+  }
+}

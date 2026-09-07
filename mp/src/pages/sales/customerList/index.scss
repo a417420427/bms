@@ -1,0 +1,42 @@
+.customer-list {
+  padding-bottom: 32rpx;
+
+  &__search {
+    padding: 16rpx;
+    background: #fff;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+  }
+  &__input {
+    height: 72rpx;
+    background: #f5f5f5;
+    border-radius: 36rpx;
+    padding: 0 24rpx;
+    font-size: 26rpx;
+  }
+
+  .customer-item {
+    margin: 16rpx;
+    padding: 24rpx;
+    background: #fff;
+    border-radius: 16rpx;
+    box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+
+    &__row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12rpx;
+      &:last-child { margin-bottom: 0; }
+    }
+    &__name {
+      font-size: 32rpx;
+      font-weight: 600;
+    }
+    &__phone, &__source, &__time {
+      font-size: 24rpx;
+      color: #666;
+    }
+  }
+}

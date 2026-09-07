@@ -1,0 +1,28 @@
+.tag {
+  display: inline-block;
+  padding: 4rpx 16rpx;
+  border-radius: 8rpx;
+  font-size: 22rpx;
+  line-height: 1.6;
+
+  &--default {
+    background: #f5f5f5;
+    color: #666;
+  }
+  &--primary {
+    background: #e6f4ff;
+    color: #1677ff;
+  }
+  &--success {
+    background: #f6ffed;
+    color: #52c41a;
+  }
+  &--warning {
+    background: #fff7e6;
+    color: #fa8c16;
+  }
+  &--danger {
+    background: #fff1f0;
+    color: #ff4d4f;
+  }
+}

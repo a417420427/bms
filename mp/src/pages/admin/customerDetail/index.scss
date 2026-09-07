@@ -1,0 +1,104 @@
+.admin-customer-detail {
+  padding-bottom: 32rpx;
+
+  .row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16rpx 0;
+    border-bottom: 1rpx solid #f0f0f0;
+    font-size: 28rpx;
+    color: #1a1a1a;
+    &:last-child { border-bottom: none; }
+
+    &__label {
+      color: #999;
+      font-size: 26rpx;
+    }
+    &__time {
+      color: #999;
+      font-size: 24rpx;
+    }
+    &__arrow {
+      color: #999;
+      margin: 0 8rpx;
+    }
+  }
+
+  .photos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12rpx;
+
+    &__item {
+      width: 160rpx;
+      height: 160rpx;
+      border-radius: 8rpx;
+    }
+  }
+
+  .followup-item,
+  .transfer-item {
+    padding: 16rpx 0;
+    border-bottom: 1rpx solid #f0f0f0;
+    &:last-child { border-bottom: none; }
+
+    &__content {
+      margin-top: 8rpx;
+      font-size: 26rpx;
+      color: #333;
+    }
+    &__result {
+      margin-top: 4rpx;
+      font-size: 24rpx;
+      color: #999;
+    }
+  }
+
+  .form-item__picker {
+    height: 80rpx;
+    line-height: 80rpx;
+    background: #f5f5f5;
+    border-radius: 8rpx;
+    padding: 0 24rpx;
+    font-size: 28rpx;
+    margin-bottom: 16rpx;
+  }
+
+  .form-item__btn {
+    width: 100%;
+    height: 80rpx;
+    line-height: 80rpx;
+    background: #1677ff;
+    color: #fff;
+    border-radius: 8rpx;
+    font-size: 28rpx;
+    border: none;
+    margin-top: 16rpx;
+  }
+
+  .edit-form {
+    &__field {
+      margin-bottom: 16rpx;
+    }
+    &__label {
+      display: block;
+      font-size: 26rpx;
+      color: #666;
+      margin-bottom: 8rpx;
+    }
+    &__input,
+    &__textarea {
+      width: 100%;
+      background: #f5f5f5;
+      border-radius: 8rpx;
+      padding: 16rpx 24rpx;
+      font-size: 28rpx;
+      box-sizing: border-box;
+      min-height: 80rpx;
+    }
+    &__textarea {
+      min-height: 160rpx;
+    }
+  }
+}

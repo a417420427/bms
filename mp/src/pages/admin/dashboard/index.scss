@@ -1,0 +1,50 @@
+.admin-dashboard {
+  padding: 24rpx 0;
+
+  &__project {
+    padding: 0 32rpx;
+    font-size: 28rpx;
+    color: #666;
+    margin-bottom: 16rpx;
+
+    .primary {
+      color: #1677ff;
+      margin-left: 8rpx;
+    }
+  }
+
+  &__stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16rpx;
+    padding: 0 16rpx;
+    margin-bottom: 32rpx;
+  }
+
+  &__actions {
+    padding: 0 16rpx;
+
+    .action-item {
+      background: #fff;
+      padding: 32rpx 24rpx;
+      margin-bottom: 16rpx;
+      border-radius: 16rpx;
+      font-size: 30rpx;
+      color: #1a1a1a;
+      box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+
+      &::after {
+        content: "›";
+        float: right;
+        color: #ccc;
+        font-size: 36rpx;
+      }
+    }
+  }
+
+  &__switch {
+    color: #ccc;
+    font-size: 36rpx;
+    margin-left: 8rpx;
+  }
+}
