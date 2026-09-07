@@ -35,6 +35,10 @@ async function start() {
 
   // 创建 Express 应用
   const app = express();
+  // nginx 反向代理后必须开 trust proxy，否则 express-rate-limit 会因为
+  // X-Forwarded-For 头存在但未开启 trust proxy 而抛 ERR_ERL_UNEXPECTED_X_FORWARDED_FOR
+  // 仅信任第一层代理（loopback），避免客户端伪造 IP
+  app.set("trust proxy", 1);
   app.use(cors());
   app.use(express.json({ limit: "10mb" }));
   app.use(express.urlencoded({ extended: true }));
