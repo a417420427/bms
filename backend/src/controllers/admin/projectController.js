@@ -12,13 +12,13 @@ exports.list = async (req, res) => {
 
 // POST /api/admin/projects
 exports.create = async (req, res) => {
-  const { name, code, address, developer, remark } = req.body || {};
+  const { name, code, address, developer, remark, checkinLocation } = req.body || {};
   if (!name) throw new BizError("项目名称必填", 400);
 
   const exists = await Project.findOne({ $or: [{ name }, { code: code || name }] });
   if (exists) throw new BizError("项目名称或编码重复", 409);
 
-  const project = await Project.create({ name, code, address, developer, remark });
+  const project = await Project.create({ name, code, address, developer, remark, checkinLocation });
 
   await writeAudit({
     operator: req.user._id,
@@ -41,7 +41,7 @@ exports.update = async (req, res) => {
   if (!project) throw new BizError("项目不存在", 404);
 
   const before = project.toObject();
-  const allowed = ["name", "code", "address", "developer", "remark", "status"];
+  const allowed = ["name", "code", "address", "developer", "remark", "status", "checkinLocation"];
   allowed.forEach((k) => {
     if (k in (req.body || {})) project[k] = req.body[k];
   });

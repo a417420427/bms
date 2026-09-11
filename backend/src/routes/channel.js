@@ -12,6 +12,11 @@ const expiredPoolCtrl = require("../controllers/channel/expiredPoolController");
 router.use(auth, onlyChannel, projectContext);
 
 router.get("/dashboard", wrap(dashboardCtrl.dashboard));
+// 渠道员获取当前项目的合作公司列表（用于推荐录入时选择）
+router.get("/companies", wrap(customerCtrl.listCompanies));
+
+// 渠道员获取当前项目的销售员列表（用于标记已到访时选择接待销售员）
+router.get("/sales", wrap(customerCtrl.listSales));
 
 router.post("/customer", wrap(customerCtrl.create));
 router.get("/customers", wrap(customerCtrl.list));

@@ -37,18 +37,27 @@ exports.create = async (req, res) => {
 
   const ctx = req.projectContext;
 
+  // 管理员 projectContext 在未传 projectId 时为 multi 模式（projectId=null），
+  // 创建客户必须指定具体项目，回退到管理员当前选择的项目
+  let projectId = ctx.projectId;
+  if (!projectId) {
+    const cur = req.user.currentProject;
+    if (!cur) throw new BizError("未选择项目，请先在个人中心切换项目", 400);
+    projectId = cur._id || cur;
+  }
+
   // 渠道公司推荐需选择合作公司
   let company = null;
   if (source === CUSTOMER_SOURCE.CHANNEL_COMPANY) {
     if (!companyId) throw new BizError("渠道公司推荐需选择合作公司", 400);
-    company = await Company.findOne({ _id: companyId, projectId: ctx.projectId });
+    company = await Company.findOne({ _id: companyId, projectId });
     if (!company) throw new BizError("合作公司不存在", 404);
   }
 
   // 校验预计到访时间偏移
   const SystemConfig = require("../../models/SystemConfig");
   const config = require("../../config");
-  const sysCfg = (await SystemConfig.findOne({ projectId: { $in: [ctx.projectId, null] } }).sort({ projectId: -1 })) || {};
+  const sysCfg = (await SystemConfig.findOne({ projectId: { $in: [projectId, null] } }).sort({ projectId: -1 })) || {};
   const offsetHours = sysCfg.visitMaxOffsetHours ?? config.business.visitCountdownHours;
   if (!isWithinOffset(visitTime, offsetHours)) {
     throw new BizError(`预计到访时间不能晚于系统时间 ${offsetHours} 小时以上`, 400);
@@ -56,7 +65,7 @@ exports.create = async (req, res) => {
 
   // 查重（同项目）
   const exist = await Customer.findOne({
-    projectId: ctx.projectId,
+    projectId,
     $or: [{ phone, isMasked: false }, { rawPhone: phone }],
   }).lean();
   if (exist) throw new BizError("客户手机号已存在", 409);
@@ -65,7 +74,7 @@ exports.create = async (req, res) => {
   let owner = null;
   if (ownerId) {
     const User = require("../../models/User");
-    owner = await User.findOne({ _id: ownerId, role: "ROLE_SALES", accessibleProjects: ctx.projectId });
+    owner = await User.findOne({ _id: ownerId, role: "ROLE_SALES", accessibleProjects: projectId });
     if (!owner) throw new BizError("销售员不存在或无该项目权限", 404);
   }
 
@@ -80,7 +89,7 @@ exports.create = async (req, res) => {
     visitTime: new Date(visitTime),
     visitPhotos,
     remark,
-    projectId: ctx.projectId,
+    projectId,
     owner: owner ? owner._id : null,
     company: company ? company._id : null,
     referrerName: referrerName || null,
@@ -96,7 +105,7 @@ exports.create = async (req, res) => {
     action: AUDIT_ACTION.CUSTOMER_CREATE,
     module: "ADMIN",
     target: name,
-    projectId: ctx.projectId,
+    projectId,
     detail: { customerId: customer._id, source, ownerId: owner ? owner._id : null },
     ip: req.ip,
   });

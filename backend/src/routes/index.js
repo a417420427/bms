@@ -7,6 +7,7 @@ router.use("/user", require("./user"));
 router.use("/sales", require("./sales"));
 router.use("/channel", require("./channel"));
 router.use("/admin", require("./admin"));
+router.use("/checkin", require("./checkin"));
 router.use("/upload", require("./upload"));
 
 module.exports = router;

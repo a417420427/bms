@@ -9,6 +9,30 @@ const { writeAudit } = require("../../utils/audit");
 const { writeTransferLog: writeTransfer } = require("../../utils/transferLog");
 const { AUDIT_ACTION, TRANSFER_ACTION, CUSTOMER_STATUS } = require("../../utils/constants");
 
+// GET /api/channel/companies
+// 渠道员获取当前项目的合作公司列表（用于推荐录入时选择）
+exports.listCompanies = async (req, res) => {
+  const { projectId } = req.projectContext;
+  const list = await Company.find({ projectId, status: "ACTIVE" })
+    .sort({ createdAt: -1 })
+    .lean();
+  return { data: list };
+};
+
+// GET /api/channel/sales
+// 渠道员获取当前项目的销售员列表（用于标记已到访时选择接待销售员）
+exports.listSales = async (req, res) => {
+  const User = require("../../models/User");
+  const { projectId } = req.projectContext;
+  const list = await User.find({
+    role: "ROLE_SALES",
+    accessibleProjects: projectId,
+    status: "ACTIVE",
+  })
+    .select("realName username phone")
+    .lean();
+  return { data: list };
+};
 // POST /api/channel/customer?type=A|B
 // A类：合作公司推荐，手机号脱敏录入
 // B类：个人推荐，手机号完整 + 强制查重

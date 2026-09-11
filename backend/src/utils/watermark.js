@@ -34,7 +34,10 @@ async function uploadToOss(buffer, filename) {
   const client = getOssClient();
   if (!client) return null;
   const key = `${config.upload.dir}/${filename}`;
-  await client.put(key, buffer);
+  // 设置对象 ACL 为公共读，否则直接访问 URL 会 403
+  await client.put(key, buffer, {
+    headers: { "x-oss-object-acl": "public-read" },
+  });
   // 拼接访问 URL：优先用 endpoint/CDN 域名，否则用 bucket 默认域名
   const host = config.oss.endpoint || `https://${config.oss.bucket}.${config.oss.region}.aliyuncs.com`;
   return `${host.replace(/\/$/, "")}/${key}`;

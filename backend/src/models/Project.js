@@ -8,6 +8,11 @@ const ProjectSchema = new Schema(
     developer: String,
     status: { type: String, enum: ["ACTIVE", "DISABLED"], default: "ACTIVE" },
     remark: String,
+    checkinLocation: {
+      latitude: Number,
+      longitude: Number,
+      radius: { type: Number, default: 500 }, // 允许打卡半径（米）
+    },
   },
   { timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true } }
 );

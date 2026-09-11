@@ -16,6 +16,7 @@ const userCtrl = require("../controllers/admin/userController");
 const companyCtrl = require("../controllers/admin/companyController");
 const configCtrl = require("../controllers/admin/configController");
 const auditLogCtrl = require("../controllers/admin/auditLogController");
+const checkinCtrl = require("../controllers/admin/checkinController");
 
 router.use(auth, onlyAdmin, projectContext);
 
@@ -68,5 +69,8 @@ router.put("/config", wrap(configCtrl.update));
 
 // 审计日志
 router.get("/audit-logs", wrap(auditLogCtrl.list));
+
+// 打卡记录
+router.get("/checkins", wrap(checkinCtrl.list));
 
 module.exports = router;
