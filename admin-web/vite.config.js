@@ -13,8 +13,10 @@ export default defineConfig({
     port: 5173,
     proxy: {
       "/api": {
-        target: "http://localhost:3000",
+        target: "https://ibnlus.com",
         changeOrigin: true,
+        // /api/xxx → http://ibnlus.com/api/bms/xxx
+        rewrite: (path) => path.replace(/^\/api/, "/api/bms"),
       },
     },
   },
