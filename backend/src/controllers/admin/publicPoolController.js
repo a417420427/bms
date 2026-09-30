@@ -1,5 +1,7 @@
 const PublicPool = require("../../models/PublicPool");
 const Customer = require("../../models/Customer");
+const Approval = require("../../models/Approval");
+const { APPROVAL_TYPE, APPROVAL_RESULT } = require("../../models/Approval");
 const { BizError } = require("../../utils/response");
 const { parsePaging } = require("../../utils/validators");
 const { writeAudit } = require("../../utils/audit");
@@ -105,4 +107,33 @@ exports.assignFromPublic = async (req, res) => {
   });
 
   return { data: { customer, message: "客户已从公共池分配" } };
+};
+
+// GET /api/admin/public-pool/claims
+// 公共池认领审批列表（销售员提交的 CLAIM_PUBLIC 待审批申请）
+exports.claims = async (req, res) => {
+  const ctx = req.projectContext;
+  const projectFilter = ctx.multi
+    ? { projectId: { $in: ctx.accessibleProjectIds } }
+    : { projectId: ctx.projectId };
+
+  const { page, pageSize, skip } = parsePaging(req.query);
+  const filter = {
+    ...projectFilter,
+    type: APPROVAL_TYPE.CLAIM_PUBLIC,
+    result: APPROVAL_RESULT.PENDING,
+  };
+
+  const [list, total] = await Promise.all([
+    Approval.find(filter)
+      .populate("applicant", "realName username phone")
+      .populate("customerId", "name phone source intentLevel")
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(pageSize)
+      .lean(),
+    Approval.countDocuments(filter),
+  ]);
+
+  return { data: { list, total, page, pageSize } };
 };

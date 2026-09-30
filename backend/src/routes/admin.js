@@ -17,6 +17,7 @@ const companyCtrl = require("../controllers/admin/companyController");
 const configCtrl = require("../controllers/admin/configController");
 const auditLogCtrl = require("../controllers/admin/auditLogController");
 const checkinCtrl = require("../controllers/admin/checkinController");
+const statsCtrl = require("../controllers/admin/statsController");
 
 router.use(auth, onlyAdmin, projectContext);
 
@@ -39,6 +40,7 @@ router.post("/approve-conflict", wrap(approvalCtrl.approveConflict));
 
 // 公共池
 router.get("/public-pool", wrap(publicPoolCtrl.list));
+router.get("/public-pool/claims", wrap(publicPoolCtrl.claims));
 router.post("/assign-from-public", wrap(publicPoolCtrl.assignFromPublic));
 
 // 过期池
@@ -72,5 +74,11 @@ router.get("/audit-logs", wrap(auditLogCtrl.list));
 
 // 打卡记录
 router.get("/checkins", wrap(checkinCtrl.list));
+// 数据看板统计
+router.get("/stats/funnel", wrap(statsCtrl.funnel));
+router.get("/stats/sales", wrap(statsCtrl.sales));
+router.get("/stats/channel", wrap(statsCtrl.channel));
+router.get("/stats/warning", wrap(statsCtrl.warning));
+router.get("/stats/activity", wrap(statsCtrl.activity));
 
 module.exports = router;
