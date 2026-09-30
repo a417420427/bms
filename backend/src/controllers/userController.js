@@ -17,6 +17,7 @@ exports.listProjects = async (req, res) => {
     code: p.code,
     address: p.address,
     developer: p.developer,
+    checkinLocation: p.checkinLocation || null,
     isDefault: currentId && p._id.toString() === currentId,
   }));
   return { data: list };
@@ -47,6 +48,7 @@ exports.switchProject = async (req, res) => {
     code: project.code,
     address: project.address,
     developer: project.developer,
+    checkinLocation: project.checkinLocation || null,
   } };
 };
 

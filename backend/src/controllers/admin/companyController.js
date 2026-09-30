@@ -8,8 +8,16 @@ exports.list = async (req, res) => {
   const { projectId } = req.query || {};
   const filter = { status: "ACTIVE" };
   if (projectId) filter.projectId = projectId;
-  const list = await Company.find(filter).sort({ createdAt: -1 }).lean();
-  return { data: list };
+  const list = await Company.find(filter)
+    .populate("projectId", "name code")
+    .sort({ createdAt: -1 })
+    .lean();
+  const data = list.map((c) => ({
+    ...c,
+    projectName: c.projectId ? c.projectId.name : "",
+    projectId: c.projectId ? c.projectId._id : c.projectId,
+  }));
+  return { data };
 };
 
 // POST /api/admin/companies

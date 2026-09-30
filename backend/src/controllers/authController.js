@@ -36,6 +36,7 @@ function serializeUser(user) {
           code: user.currentProject.code,
           address: user.currentProject.address,
           developer: user.currentProject.developer,
+          checkinLocation: user.currentProject.checkinLocation || null,
         }
       : null,
     accessibleProjects: (user.accessibleProjects || []).map((p) => ({
@@ -44,6 +45,7 @@ function serializeUser(user) {
       code: p.code,
       address: p.address,
       developer: p.developer,
+      checkinLocation: p.checkinLocation || null,
     })),
   };
 }
